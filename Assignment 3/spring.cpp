@@ -6,6 +6,8 @@ using namespace std;
 
 int main() {
 
+  clock_t start,end;
+  start = clock();
   // declare variables
   double m, k, x, v, t_max, dt, t, a;
   vector<double> t_list, x_list, v_list;
@@ -18,7 +20,7 @@ int main() {
 
   // simulation time and timestep
   t_max = 100;
-  dt = 0.1;
+  dt = 0.001;
 
   // Euler integration
   for (t = 0; t <= t_max; t = t + dt) {
@@ -45,6 +47,11 @@ int main() {
   } else { // file did not open successfully
     cout << "Could not open trajectory file for writing" << endl;
   }
+
+  end = clock();
+  cout << "Time: " << double(end-start)/double(CLOCKS_PER_SEC) << endl;
+
+  system("pause");
 
   /* The file can be loaded and visualised in Python as follows:
 
