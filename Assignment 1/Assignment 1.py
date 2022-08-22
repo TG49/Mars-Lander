@@ -1,9 +1,11 @@
 # uncomment the next line if running in a notebook
 # %matplotlib inline
-from urllib.request import DataHandler
+from tracemalloc import start
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
+start_time = time.time()
 # mass, spring constant, initial position and velocity
 m = 1
 k = 1
@@ -12,9 +14,9 @@ v0 = 1
 
 
 # simulation time, timestep and time
-t_max = 200
-dt = 1
-dtAnalytic = 0.01
+t_max = 100
+dt = 0.01
+dtAnalytic = 0.001
 
 
 t_array = np.arange(0, t_max, dt)
@@ -55,14 +57,18 @@ def Verlet():
     for i,t in enumerate(t_array):
         if i==0:
             x_numericalVerlet[i+1]=x_numericalVerlet[0]+dt*v0
-        elif (i+2)<len(t_array):
+        elif (i+1)<len(t_array):
             a= -k * x_numericalVerlet[i]/m
             x_numericalVerlet[i+1]=2*x_numericalVerlet[i]-x_numericalVerlet[i-1]+a*(dt**2)
             v_numericalVerlet[i]=(1/(2*dt))*(x_numericalVerlet[i+1]-x_numericalVerlet[i-1])
+        else:
+            v_numericalVerlet[i] = (x_numericalVerlet[i]-x_numericalVerlet[i-1])/dt
             
 
 #Euler()
 Verlet()
+
+print(time.time()-start_time)
 
 fig,ax = plt.subplots(3,1)
 

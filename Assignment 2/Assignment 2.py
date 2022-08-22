@@ -10,9 +10,9 @@ R = 3396.2e3 #Number in km
 
 initPos = [1.5,0,0] #In terms of planetary Radius, in orthogonal directions x,y,z
 initVel = [0,1,0] #ratio of orthogonal directions x,y,z
-orbitalT = 50000 #Time to simulate
+orbitalT = 5000 #Time to simulate
 dt = 1 #Time step
-type = "Euler" #Approximation Type to use
+type = "Verlet" #Approximation Type to use
 percentageOfCircular = 1.1 #Ratio of initial velocity to velocity required for circular orbit
 scenario = 0 #Which scenario is being considered. Only need to change for scenario 1
 
@@ -127,7 +127,7 @@ vEscape = np.sqrt(2*G*M/(posMagnitude*R))
 if scenario == 1:
     velocityMagnitude = 0
 else:
-    velocityMagnitude=vEscape * percentageOfCircular
+    velocityMagnitude=vCircular * percentageOfCircular
 
 print(velocityMagnitude)
 
@@ -169,7 +169,7 @@ elif(type == "Verlet"):
         altitude[i] = np.linalg.norm(position[i]/R) - 1
         if i==0:
             position[i+1] = position[i]+dt*velocity[i]
-        elif (i+2) < len(t_array):
+        elif (i+1) < len(t_array):
             accelerationVector = updateAccelerationVector(position[i])
             position[i+1] = 2*position[i]-position[i-1]+accelerationVector*(dt**2)
             velocity[i] = (1/(2*dt)) * (position[i+1]-position[i-1])
