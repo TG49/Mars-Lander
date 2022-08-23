@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{a512b21f-33d4-47af-ba34-f4d4886a89e2}</ProjectGuid>
-    <RootNamespace>Lander</RootNamespace>
+    <ProjectGuid>{d15a40b7-281d-4c1e-a0a0-7f09d4f09a65}</ProjectGuid>
+    <RootNamespace>lander</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,11 +127,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\lander Source Code\lander.cpp" />
-    <ClCompile Include="..\..\lander Source Code\lander_graphics.cpp" />
+    <ClCompile Include="..\src\lander.cpp" />
+    <ClCompile Include="..\src\lander_graphics.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\lander Source Code\lander.h" />
+    <ClInclude Include="..\src\lander.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

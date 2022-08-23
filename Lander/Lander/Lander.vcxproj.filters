@@ -15,15 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\lander Source Code\lander.cpp">
+    <ClCompile Include="..\src\lander.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\lander Source Code\lander_graphics.cpp">
+    <ClCompile Include="..\src\lander_graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\lander Source Code\lander.h">
+    <ClInclude Include="..\src\lander.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
