@@ -13,6 +13,7 @@
 // ahg@eng.cam.ac.uk and gc121@eng.cam.ac.uk.
 
 #include "lander.h"
+#include "extension.h"
 #include <vector>
 
 //Update the acceleration vector associated with the lander craft.
@@ -23,32 +24,7 @@ void autopilot (void)
   // INSERT YOUR CODE HERE
 }
 
-void Euler() {
-    static double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
-    vector3d acceleration = updateAccelerationVector(mass);
-    cout << "Mass: " << mass << ", Acceleration: " << acceleration.abs() << endl;
-    position = position + velocity * delta_t;
-    velocity = velocity + acceleration * delta_t;
-}
 
-void Verlet() {
-    static double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
-    static std::vector<vector3d> previousStates(2);
-    vector3d acceleration = updateAccelerationVector(mass);
-    cout << "Mass: " << mass <<", Acceleration: " << acceleration.abs() << endl;
-    if (simulation_time == 0) {
-        previousStates[0] = position;
-        position = position + velocity * delta_t;
-        velocity = velocity + acceleration * delta_t;
-        previousStates[1] = position;
-    }
-    else {
-        position = 2 * position - previousStates[0] + acceleration * delta_t * delta_t;
-        velocity = (position - previousStates[1]) / delta_t;
-        previousStates[0] = previousStates[1];
-        previousStates[1] = position;
-    }
-}
 
 void numerical_dynamics (void)
   // This is the function that performs the numerical integration to update the
@@ -58,13 +34,19 @@ void numerical_dynamics (void)
     if (stabilized_attitude){
         attitude_stabilization();
     }
+    else {
+        adjustAttitude();
+    }
+    //Euler();
+    Verlet();
+    
+    //std::cout << "x: " << orientation.x << " y: " << orientation.y << " z: " <<orientation.z << std::endl;
 
-    //Euler
-        //Euler();
+    //orientation.x += angularPitchVelocity * delta_t;
+    //orientation.y += angularYawVelocity * delta_t;
 
-    //Verlet
-        Verlet();
-
+   // std::cout << "Angular Pitch: " << angularPitchVelocity << ", Angular Yaw: " << angularYawVelocity << std::endl;
+ 
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();
 
@@ -94,6 +76,9 @@ void initialize_simulation (void)
   scenario_description[8] = "";
   scenario_description[9] = "";
 
+
+  angularPitchVelocity = 0;
+  angularYawVelocity = 0;
   switch (scenario) {
 
   case 0:

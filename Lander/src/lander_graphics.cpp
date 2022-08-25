@@ -77,46 +77,6 @@
 #define DECLARE_GLOBAL_VARIABLES
 #include "lander.h"
 
-vector3d updateGravitationVector() {
-    double distance = position.abs2();
-    return (-1 * GRAVITY * MARS_MASS / distance) * position.norm();
-}
-
-vector3d updateThrustVector(double& mass) {
-    return thrust_wrt_world() / mass;
-}
-
-void updateMass(double& mass) {
-    //fuel -= delta_t * throttle * FUEL_RATE_AT_MAX_THRUST;
-    mass = UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY;
-}
-
-vector3d updateDragVector(double& mass) {
-    //Get current atmosphericDensity
-    double atmosphericDensity = atmospheric_density(position);
-
-    //Drag on Lander
-    vector3d Force = -(0.5) * atmosphericDensity * DRAG_COEF_LANDER * landerArea * velocity.abs2() * velocity.norm();
-
-    //Drag on Parachute
-    if (parachute_status == DEPLOYED) {
-        double totalChuteArea = NUM_CHUTES * parachuteArea;
-        Force += -(0.5) * atmosphericDensity * DRAG_COEF_CHUTE * totalChuteArea * velocity.abs2() * velocity.norm();
-    }
-
-    return Force / mass;
-}
-
-
-vector3d updateAccelerationVector(double& mass) {
-    updateMass(mass);
-    vector3d gravitation = updateGravitationVector();
-    vector3d thrust = updateThrustVector(mass);
-    vector3d drag = updateDragVector(mass);
-
-    return gravitation + thrust + drag;
-}
-
 void invert (double m[], double mout[])
   // Inverts a 4x4 OpenGL rotation matrix
 {
@@ -895,7 +855,7 @@ void display_help_text (void)
   glut_print(20, view_height-140, "Middle/shift mouse or up wheel - zoom in 3D views");
   glut_print(20, view_height-155, "Right mouse or down wheel - zoom out 3D views");
 
-  glut_print(20, view_height-175, "s - toggle attitude stabilizer");
+  glut_print(20, view_height-175, "y - toggle attitude stabilizer");
   glut_print(20, view_height-190, "p - deploy parachute");
   glut_print(20, view_height-205, "a - toggle autopilot");
 
@@ -2044,8 +2004,8 @@ void glut_key (unsigned char k, int x, int y)
     reset_simulation();
     break;
 
-  case 'a': case 'A':
-    // a or A - autopilot
+  case 'm': case 'M':
+    // m or M - autopilot
     if (!landed) autopilot_enabled = !autopilot_enabled;
     if (paused) refresh_all_subwindows();
     break;
@@ -2085,9 +2045,33 @@ void glut_key (unsigned char k, int x, int y)
     if (paused) refresh_all_subwindows();
     break;
 
-  case 's': case 'S':
-    // s or S - attitude stabilizer
+  case 'y': case 'Y':
+    // y or Y - attitude stabilizer
     if (!autopilot_enabled && !landed) stabilized_attitude = !stabilized_attitude;
+    if (paused) refresh_all_subwindows();
+    break;
+
+  case 'w': case 'W':
+    //w or W - increase pitch angular velocity
+    angularPitchVelocity += 1;
+    if (paused) refresh_all_subwindows();
+    break;
+
+  case 's': case 'S':
+    //s or S - decrease pitch angular velocity
+    angularPitchVelocity -= 1;
+    if (paused) refresh_all_subwindows();
+    break;
+
+  case 'a': case 'A':
+    //a or A - increase yaw angular velocity
+    angularYawVelocity -= 1;
+    if (paused) refresh_all_subwindows();
+    break;
+
+  case 'd': case 'D':
+    //a or A - increase yaw angular velocity
+    angularYawVelocity += 1;
     if (paused) refresh_all_subwindows();
     break;
 
@@ -2108,8 +2092,10 @@ int main (int argc, char* argv[])
 {
   int i;
 
+
   // Main GLUT window
   glutInit(&argc, argv);
+  simulation_speed = 0;
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutInitWindowPosition(0, 0);
   glutInitWindowSize(PREFERRED_WIDTH, PREFERRED_HEIGHT);

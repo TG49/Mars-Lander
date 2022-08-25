@@ -127,10 +127,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\extension.cpp" />
     <ClCompile Include="..\src\lander.cpp" />
     <ClCompile Include="..\src\lander_graphics.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\extension.h" />
     <ClInclude Include="..\src\lander.h" />
   </ItemGroup>
   <ItemGroup>

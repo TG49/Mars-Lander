@@ -12,6 +12,8 @@
 // to receive any suggested modifications by private correspondence to
 // ahg@eng.cam.ac.uk and gc121@eng.cam.ac.uk.
 
+#ifndef LANDER
+#define LANDER
 #ifdef _WIN32
 #define _USE_MATH_DEFINES
 #include <windows.h>
@@ -30,6 +32,7 @@
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
+
 
 // GLUT mouse wheel operations work under Linux only
 #if !defined (GLUT_WHEEL_UP)
@@ -172,8 +175,9 @@ double climb_speed, ground_speed, altitude, throttle, fuel;
 bool stabilized_attitude, autopilot_enabled, parachute_lost;
 parachute_status_t parachute_status;
 int stabilized_attitude_angle;
-extern double landerArea = M_PI * LANDER_SIZE * LANDER_SIZE;
-extern double parachuteArea = (2 * LANDER_SIZE) * (2 * LANDER_SIZE);
+
+double angularPitchVelocity;
+double angularYawVelocity;
 
 
 // Orbital and closeup view parameters
@@ -196,20 +200,15 @@ extern string scenario_description[];
 extern vector3d position, orientation, velocity;
 extern parachute_status_t parachute_status;
 extern int stabilized_attitude_angle;
+extern double angularPitchVelocity;
+extern double angularYawVelocity;
 
 #endif
 
-//Function Declarations for lander.cpp
-vector3d updateAccelerationVector(double &mass);
-vector3d updateGravitationVector();
-vector3d updateThrustVector(double &mass);
-vector3d updateDragVector(double &mass);
-void updateMass(double &mass);
-void Euler();
-void Verlet();
-
-
-
+#ifdef EXTENSION
+extern double landerArea = M_PI * LANDER_SIZE * LANDER_SIZE;
+extern double parachuteArea = (2 * LANDER_SIZE) * (2 * LANDER_SIZE);
+#endif
 
 // Function prototypes for definition in lander_graphics
 void invert (double m[], double mout[]);
@@ -262,3 +261,5 @@ void closeup_mouse_button (int button, int state, int x, int y);
 void closeup_mouse_motion (int x, int y);
 void glut_special (int key, int x, int y);
 void glut_key (unsigned char k, int x, int y);
+
+#endif

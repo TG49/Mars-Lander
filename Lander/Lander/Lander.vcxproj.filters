@@ -21,9 +21,15 @@
     <ClCompile Include="..\src\lander_graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\extension.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lander.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\extension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
