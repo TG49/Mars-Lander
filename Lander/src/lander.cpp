@@ -15,6 +15,7 @@
 #include "lander.h"
 #include "extension.h"
 #include <vector>
+#include <Eigen/dense>
 
 //Update the acceleration vector associated with the lander craft.
 
@@ -31,10 +32,13 @@ void numerical_dynamics (void)
   // lander's pose. The time step is delta_t (global variable).
 {
 
-    if (stabilized_attitude){
-        attitude_stabilization();
+    if (alignToPosition){
+        AlignToVector(position);
     }
-    else {
+    else if (alignToVelocity) {
+        AlignToVector(velocity);
+            // velocityAlign();
+    } else{
         adjustAttitude();
     }
     //Euler();
@@ -50,8 +54,6 @@ void numerical_dynamics (void)
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();
 
-  // Here we can apply 3-axis stabilization to ensure the base is always pointing downwards
-  if (stabilized_attitude) attitude_stabilization();
 }
 
 void initialize_simulation (void)
@@ -76,74 +78,77 @@ void initialize_simulation (void)
   scenario_description[8] = "";
   scenario_description[9] = "";
 
-
-  angularPitchVelocity = 0;
-  angularYawVelocity = 0;
   switch (scenario) {
 
   case 0:
     // a circular equatorial orbit
-    position = vector3d(1.2*MARS_RADIUS, 0.0, 0.0);
-    velocity = vector3d(0.0, -3247.087385863725, 0.0);
-    orientation = vector3d(0.0, 90.0, 0.0);
+    position = Eigen::Vector3d(1.2*MARS_RADIUS, 0.0, 0.0);
+    velocity = Eigen::Vector3d(0.0, -3247.087385863725, 0.0);
+    orientation = Eigen::Vector3d(0.0, 90.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = false;
+    alignToVelocity = false;
+    alignToPosition = false;
     autopilot_enabled = false;
     break;
 
   case 1:
     // a descent from rest at 10km altitude
-    position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
-    velocity = vector3d(0.0, 0.0, 0.0);
-    orientation = vector3d(0.0, 0.0, 90.0);
+    position = Eigen::Vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
+    velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
+    orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = true;
+    alignToVelocity = false;
+    alignToPosition = false;
     autopilot_enabled = false;
     break;
 
   case 2:
     // an elliptical polar orbit
-    position = vector3d(0.0, 0.0, 1.2*MARS_RADIUS);
-    velocity = vector3d(3500.0, 0.0, 0.0);
-    orientation = vector3d(0.0, 0.0, 90.0);
+    position = Eigen::Vector3d(0.0, 0.0, 1.2*MARS_RADIUS);
+    velocity = Eigen::Vector3d(3500.0, 0.0, 0.0);
+    orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = false;
+    alignToVelocity = false;
+    alignToPosition = false;
     autopilot_enabled = false;
     break;
 
   case 3:
     // polar surface launch at escape velocity (but drag prevents escape)
-    position = vector3d(0.0, 0.0, MARS_RADIUS + LANDER_SIZE/2.0);
-    velocity = vector3d(0.0, 0.0, 5027.0);
-    orientation = vector3d(0.0, 0.0, 0.0);
+    position = Eigen::Vector3d(0.0, 0.0, MARS_RADIUS + LANDER_SIZE/2.0);
+    velocity = Eigen::Vector3d(0.0, 0.0, 5027.0);
+    orientation = Eigen::Vector3d(0.0, 0.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = false;
+    alignToVelocity = false;
+    alignToPosition = false;
     autopilot_enabled = false;
     break;
 
   case 4:
     // an elliptical orbit that clips the atmosphere each time round, losing energy
-    position = vector3d(0.0, 0.0, MARS_RADIUS + 100000.0);
-    velocity = vector3d(4000.0, 0.0, 0.0);
-    orientation = vector3d(0.0, 90.0, 0.0);
+    position = Eigen::Vector3d(0.0, 0.0, MARS_RADIUS + 100000.0);
+    velocity = Eigen::Vector3d(4000.0, 0.0, 0.0);
+    orientation = Eigen::Vector3d(0.0, 90.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = false;
+    alignToVelocity = false;
+    alignToPosition = false;
     autopilot_enabled = false;
     break;
 
   case 5:
     // a descent from rest at the edge of the exosphere
-    position = vector3d(0.0, -(MARS_RADIUS + EXOSPHERE), 0.0);
-    velocity = vector3d(0.0, 0.0, 0.0);
-    orientation = vector3d(0.0, 0.0, 90.0);
+    position = Eigen::Vector3d(0.0, -(MARS_RADIUS + EXOSPHERE), 0.0);
+    velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
+    orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = true;
+    alignToVelocity = false;
+    alignToPosition = false;
     autopilot_enabled = false;
     break;
 

@@ -1,12 +1,12 @@
 #include "extension.h" //Do not need to include lander.h as it is included in extension.h
 #include <vector>
 
-vector3d updateGravitationVector() {
-    double distance = position.abs2();
-    return (-1 * GRAVITY * MARS_MASS / distance) * position.norm();
+Eigen::Vector3d updateGravitationVector() {
+    double distance = position.squaredNorm();
+    return (-1 * GRAVITY * MARS_MASS / distance) * position.normalized();
 }
 
-vector3d updateThrustVector(double& mass) {
+Eigen::Vector3d updateThrustVector(double& mass) {
     return thrust_wrt_world() / mass;
 }
 
@@ -15,43 +15,43 @@ void updateMass(double& mass) {
     mass = UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY;
 }
 
-vector3d updateDragVector(double& mass) {
+Eigen::Vector3d updateDragVector(double& mass) {
     //Get current atmosphericDensity
     double atmosphericDensity = atmospheric_density(position);
 
     //Drag on Lander
-    vector3d Force = -(0.5) * atmosphericDensity * DRAG_COEF_LANDER * landerArea * velocity.abs2() * velocity.norm();
+    Eigen::Vector3d Force = -(0.5) * atmosphericDensity * DRAG_COEF_LANDER * landerArea * velocity.squaredNorm() * velocity.normalized();
 
     //Drag on Parachute
     if (parachute_status == DEPLOYED) {
         double totalChuteArea = NUM_CHUTES * parachuteArea;
-        Force += -(0.5) * atmosphericDensity * DRAG_COEF_CHUTE * totalChuteArea * velocity.abs2() * velocity.norm();
+        Force += -(0.5) * atmosphericDensity * DRAG_COEF_CHUTE * totalChuteArea * velocity.squaredNorm() * velocity.normalized();
     }
 
     return Force / mass;
 }
 
 
-vector3d updateAccelerationVector(double& mass) {
+Eigen::Vector3d updateAccelerationVector(double& mass) {
     updateMass(mass);
-    vector3d gravitation = updateGravitationVector();
-    vector3d thrust = updateThrustVector(mass);
-    vector3d drag = updateDragVector(mass);
+    Eigen::Vector3d gravitation = updateGravitationVector();
+    Eigen::Vector3d thrust = updateThrustVector(mass);
+    Eigen::Vector3d drag = updateDragVector(mass);
 
     return gravitation + thrust + drag;
 }
 
 void Euler() {
     static double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
-    vector3d acceleration = updateAccelerationVector(mass);
+    Eigen::Vector3d acceleration = updateAccelerationVector(mass);
     position = position + velocity * delta_t;
     velocity = velocity + acceleration * delta_t;
 }
 
 void Verlet() {
     static double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
-    static std::vector<vector3d> previousStates(2);
-    vector3d acceleration = updateAccelerationVector(mass);
+    static std::vector<Eigen::Vector3d> previousStates(2);
+    Eigen::Vector3d acceleration = updateAccelerationVector(mass);
     if (simulation_time == 0) {
         previousStates[0] = position;
         position = position + velocity * delta_t;
@@ -66,63 +66,118 @@ void Verlet() {
     }
 }
 
-void adjustAttitude()
-// Three-axis stabilization to ensure the lander's base is always pointing downwards 
-{
-    static vector3d prograde, aRadial, normal; 
-    static bool Initialised = false;
-    double m[16];
 
-    if (!Initialised)
-    {
-        prograde = position.norm();
+Eigen::Matrix4d quaternionRotationMatrix(double pitch, double yaw, double roll, std::vector<Eigen::Vector3d> axes, Eigen::Quaterniond &currentOrientation) {
+    
+    ///Check UnitZ here and UnitZ graphical are the same by showing both. 
+    Eigen::AngleAxisd rollAngle(roll, axes[2]);
+    Eigen::AngleAxisd yawAngle(yaw, axes[1]);
+    Eigen::AngleAxisd pitchAngle(pitch, axes[0]);
+
+    Eigen::Quaternion<double> q = pitchAngle * yawAngle * rollAngle;
+    q.normalize();
+
+    //Update net rotation matrix
+    currentOrientation = q * currentOrientation;
+    currentOrientation.normalize();
+
+    Eigen::Matrix4d rotation = Eigen::Matrix4d::Identity(4, 4);
+    rotation.block<3, 3>(0, 0) = currentOrientation.toRotationMatrix();
+    orientation = currentOrientation.toRotationMatrix().eulerAngles(0,1,2);
+
+
+    return rotation;
+}
+
+void adjustAttitude()
+{
+    Eigen::Matrix4d rotMatrix4x4 = Eigen::Matrix4d::Identity(4,4); //Rotation matrix
+    std::vector<Eigen::Vector3d> axes;
+
+    //Rotate coordinate vectors to align with the current orientation of the spacecraft
+    axes.push_back(rotQuat * Eigen::Vector3d::UnitX());
+    axes.push_back(rotQuat * Eigen::Vector3d::UnitY());
+    axes.push_back(rotQuat * Eigen::Vector3d::UnitZ());
+
+    //Use default orientation for the first call to the function.
+    if (!Initialised) {
+        orientation = orientation / 180 * M_PI; //Convert orientation from degrees to radians
+        rotMatrix4x4 = quaternionRotationMatrix(orientation[2], orientation[1], orientation[0], axes, rotQuat);
         Initialised = true;
     }
     else {
-        if (prograde.x < 0) { normal = -normal; }
+        //Update timestep rotations
+        double rollAngle = 0;
+        double pitchAngle = angularPitchVelocity * delta_t;
+        double yawAngle = angularYawVelocity * delta_t;
 
-        prograde += delta_t * angularPitchVelocity * normal; // change the prograde by a small amount in the normal vector direction.
+        //Find the new rotation matrix which defines the orientation of the craft.
+        rotMatrix4x4 = quaternionRotationMatrix(pitchAngle, yawAngle, rollAngle, axes, rotQuat);
 
-        prograde += delta_t * angularYawVelocity * aRadial;
-
-        prograde = prograde.norm();
-
-
-
-        std::cout << "Prograde: " << prograde << std::endl;
-        std::cout << "Angular Pitch Velocity: " << angularPitchVelocity << std::endl;
+        //Save the rotaiton matrix to the rotationArray, which is used by openGL for visualisation
     }
+    Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0) = rotMatrix4x4;
 
 
-    // !!!!!!!!!!!!! HINT TO STUDENTS ATTEMPTING THE EXTENSION EXERCISES !!!!!!!!!!!!!!
-    // For any-angle attitude control, we just need to set "up" to something different,
-    // and leave the remainder of this function unchanged. For example, suppose we want
-    // the attitude to be stabilized at stabilized_attitude_angle to the vertical in the
-    // close-up view. So we need to rotate "up" by stabilized_attitude_angle degrees around
-    // an axis perpendicular to the plane of the close-up view. This axis is given by the
-    // vector product of "up"and "closeup_coords.right". To calculate the result of the
-    // rotation, search the internet for information on the axis-angle rotation formula.
+    /*for (int i = 0; i < size(rotationArray); i++)
+    {
+        cout << rotationArray[i] << " ";
+    }
+    cout << endl << endl;*/
 
-    // Set left to something perpendicular to up
+}
+
+void velocityAlign(bool alignToVelocity){
+    static bool XAligned;
+    static bool YAligned;
+    static bool VelocityAligned = false;
+
+    if (alignToVelocity) {
+
+        //Get local coordinate system
+        Eigen::Vector3d currentOrientation = (rotQuat * Eigen::Vector3d::UnitZ()).normalized();
+        Eigen::Vector3d transposedY = (rotQuat * Eigen::Vector3d::UnitY()).normalized();
+        Eigen::Vector3d transposedX = (rotQuat * Eigen::Vector3d::UnitZ()).normalized();
+
+        //find normal vector to velocity and orientation
+        Eigen::Vector3d normalToOrientationAndVelocity = currentOrientation.cross(velocity.normalized());
+
+        //Test if normal vector parallel to either local X or Y axes.
+        if ((normalToOrientationAndVelocity.dot(transposedY) < SMALL_NUM) && (normalToOrientationAndVelocity.dot(transposedX) < SMALL_NUM)) {
+            angularPitchVelocity = 0;
+            angularYawVelocity = 0;
+            VelocityAligned = true;
+            cout << "Velocity Aligned " << endl;
+            return;
+        }
+        else if (normalToOrientationAndVelocity.dot(transposedY) < SMALL_NUM)
+        {
+            YAligned = true;
+            XAligned = false;
+            angularPitchVelocity = 0;
+            cout << "Y Aligned " << endl;
+        }
+        else if (normalToOrientationAndVelocity.dot(transposedX) < SMALL_NUM) {
+            XAligned = true;
+            YAligned = false;
+            angularPitchVelocity = 0;
+            cout << "X Aligned " << endl;
+        }
+        else {
+            //Start rotation. Will continue to rotate until aligned
+            angularPitchVelocity = 1;
+            cout << "None Aligned" << endl;
+            return;
+        }
+
+        if (XAligned && !YAligned)
+        {
+            angularYawVelocity = 1;
+            cout << "Increase Yaw Velocity" << endl;
+            return;
+        }
 
 
-    //Error. Think it has to do with the Yaw component. The orientation values go 0-90-0 on a 180 degree scale.
-    //Having issues where it reads 0. Investigate further.
 
-    aRadial.x = -prograde.y; aRadial.y = prograde.x; aRadial.z = 0.0;
-    if (aRadial.abs() < SMALL_NUM) { aRadial.x = -prograde.z; aRadial.y = 0.0; aRadial.z = prograde.x; } //Yaw error here
-    aRadial = aRadial.norm();
-    cout << "aRadial: " << aRadial << endl;
-    normal = aRadial ^ prograde;
-
-
-
-    // Construct modelling matrix (rotation only) from these three vectors
-    m[0] = normal.x; m[1] = normal.y; m[2] = normal.z; m[3] = 0.0;
-    m[4] = aRadial.x; m[5] = aRadial.y; m[6] = aRadial.z; m[7] = 0.0;
-    m[8] = prograde.x; m[9] = prograde.y; m[10] = prograde.z; m[11] = 0.0;
-    m[12] = 0.0; m[13] = 0.0; m[14] = 0.0; m[15] = 1.0;
-    // Decomponse into xyz Euler angles
-    orientation = matrix_to_xyz_euler(m);
-    cout << "Orientation: " << orientation << endl << endl;
+    }
 }

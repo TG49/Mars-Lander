@@ -34,6 +34,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <Text Include="Keymap.txt" />
+    <Text Include="To Do.txt" />
   </ItemGroup>
 </Project>

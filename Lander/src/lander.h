@@ -24,6 +24,7 @@
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
+#define NDEBUG
 #include <GL/glut.h>
 #endif
 #include <iostream>
@@ -32,6 +33,7 @@
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
+#include <Eigen/Dense>
 
 
 // GLUT mouse wheel operations work under Linux only
@@ -89,7 +91,7 @@
 
 using namespace std;
 
-class vector3d {
+/*class vector3d {
   // Utility class for three-dimensional vector operations
 public:
   vector3d() {x=0.0; y=0.0; z=0.0;}
@@ -114,18 +116,18 @@ public:
   friend ostream& operator << (ostream &out, const vector3d &v) { out << v.x << ' ' << v.y << ' ' << v.z; return out; }
   double x, y, z;
 private:
-};
+};*/
 
 // Data type for recording lander's previous positions
 struct track_t {
   unsigned short n;
   unsigned short p;
-  vector3d pos[N_TRACK];
+  Eigen::Vector3d pos[N_TRACK];
 };
 
 // Quaternions for orbital view transformation
 struct quat_t {
-  vector3d v;
+  Eigen::Vector3d v;
   double s;
 };
 
@@ -133,7 +135,7 @@ struct quat_t {
 struct closeup_coords_t {
   bool initialized;
   bool backwards;
-  vector3d right;
+  Eigen::Vector3d right;
 };
 
 // Enumerated data type for parachute status
@@ -170,14 +172,19 @@ unsigned long long time_program_started;
 
 // Lander state - the visualization routines use velocity_from_positions, so not sensitive to 
 // any errors in the velocity update in numerical_dynamics
-vector3d position, orientation, velocity, velocity_from_positions, last_position;
+Eigen::Vector3d position, orientation, velocity, velocity_from_positions, last_position;
 double climb_speed, ground_speed, altitude, throttle, fuel;
-bool stabilized_attitude, autopilot_enabled, parachute_lost;
+bool autopilot_enabled, parachute_lost;
 parachute_status_t parachute_status;
 int stabilized_attitude_angle;
 
 double angularPitchVelocity;
 double angularYawVelocity;
+double rotationArray[16];
+bool Initialised;
+Eigen::Quaterniond rotQuat;
+bool alignToVelocity;
+bool alignToPosition;
 
 
 // Orbital and closeup view parameters
@@ -193,29 +200,34 @@ GLfloat straight_on[] = { 0.0, 0.0, 1.0, 0.0 };
 
 #else // extern declarations of those global variables used in lander.cpp
 
-extern bool stabilized_attitude, autopilot_enabled;
+extern bool autopilot_enabled;
 extern double delta_t, simulation_time, throttle, fuel;
 extern unsigned short scenario;
 extern string scenario_description[];
-extern vector3d position, orientation, velocity;
+extern Eigen::Vector3d position, orientation, velocity;
 extern parachute_status_t parachute_status;
 extern int stabilized_attitude_angle;
 extern double angularPitchVelocity;
 extern double angularYawVelocity;
+extern bool alignToVelocity;
+extern bool alignToPosition;
 
 #endif
 
 #ifdef EXTENSION
 extern double landerArea = M_PI * LANDER_SIZE * LANDER_SIZE;
 extern double parachuteArea = (2 * LANDER_SIZE) * (2 * LANDER_SIZE);
+extern double rotationArray[16];
+extern bool Initialised;
+extern Eigen::Quaterniond rotQuat;
 #endif
 
 // Function prototypes for definition in lander_graphics
 void invert (double m[], double mout[]);
-void xyz_euler_to_matrix (vector3d ang, double m[]);
-vector3d matrix_to_xyz_euler (double m[]);
+void xyz_euler_to_matrix (Eigen::Vector3d ang, double m[]);
+Eigen::Vector3d matrix_to_xyz_euler (double m[]);
 void normalize_quat (quat_t &q);
-quat_t axis_to_quat (vector3d a, const double phi);
+quat_t axis_to_quat (Eigen::Vector3d a, const double phi);
 double project_to_sphere (const double r, const double x, const double y);
 quat_t add_quats (quat_t q1, quat_t q2);
 void quat_to_matrix (double m[], const quat_t q);
@@ -228,7 +240,7 @@ void glutCone (GLdouble base, GLdouble height, GLint slices, GLint stacks, bool 
 void enable_lights (void);
 void setup_lights (void);
 void glut_print (float x, float y, string s);
-double atmospheric_density (vector3d pos);
+double atmospheric_density (Eigen::Vector3d pos);
 void draw_dial (double cx, double cy, double val, string title, string units);
 void draw_control_bar (double tlx, double tly, double val, double red, double green, double blue, string title);
 void draw_indicator_lamp (double tcx, double tcy, string off_text, string on_text, bool on);
@@ -246,8 +258,8 @@ void draw_main_window (void);
 void refresh_all_subwindows (void);
 bool safe_to_deploy_parachute (void);
 void update_visualization (void);
-void attitude_stabilization (void);
-vector3d thrust_wrt_world (void);
+void AlignToVector(Eigen::Vector3d vector);
+Eigen::Vector3d thrust_wrt_world (void);
 void autopilot (void);
 void numerical_dynamics (void);
 void initialize_simulation (void);

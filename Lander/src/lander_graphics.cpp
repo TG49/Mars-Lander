@@ -90,16 +90,16 @@ void invert (double m[], double mout[])
   mout[15] = 1.0; mout[3] = 0.0; mout[7] = 0.0; mout[11] = 0.0;
 }
 
-void xyz_euler_to_matrix (vector3d ang, double m[])
+void xyz_euler_to_matrix (Eigen::Vector3d ang, double m[])
   // Constructs a 4x4 OpenGL rotation matrix from xyz Euler angles
 {
   double sin_a, sin_b, sin_g, cos_a, cos_b, cos_g;
   double ra, rb, rg;
 
   // Pre-calculate radian angles
-  ra = ang.x*M_PI/(double)180;
-  rb = ang.y*M_PI/(double)180;
-  rg = ang.z*M_PI/(double)180;
+  ra = ang(0)*M_PI/(double)180;
+  rb = ang(1)*M_PI/(double)180;
+  rg = ang(2)*M_PI/(double)180;
 
   // Pre-calculate sines and cosines
   cos_a = cos(ra);
@@ -128,51 +128,51 @@ void xyz_euler_to_matrix (vector3d ang, double m[])
   m[15] = 1.0;
 }
 
-vector3d matrix_to_xyz_euler (double m[])
+Eigen::Vector3d matrix_to_xyz_euler (double m[])
   // Decomposes a 4x4 OpenGL rotation matrix into xyz Euler angles
 {
   double tmp;
-  vector3d ang;
+  Eigen::Vector3d ang;
 
   // Catch degenerate elevation cases
   if (m[2] < -0.99999999) {
-    ang.y = 90.0;
-    ang.x = 0.0;
-    ang.z = acos(m[8]);
-    if ( (sin(ang.z)>0.0) ^ (m[4]>0.0) ) ang.z = -ang.z;
-    ang.z *= 180.0/M_PI;
+    ang(1) = 90.0;
+    ang(0) = 0.0;
+    ang(2) = acos(m[8]);
+    if ( (sin(ang(2))>0.0) ^ (m[4]>0.0) ) ang(2) = -ang(2);
+    ang(2) *= 180.0/M_PI;
     return ang;
   }
   if (m[2] > 0.99999999) {
-    ang.y = -90.0;
-    ang.x = 0.0;
-    ang.z = acos(m[5]);
-    if ( (sin(ang.z)<0.0) ^ (m[4]>0.0) ) ang.z = -ang.z;
-    ang.z *= 180.0/M_PI;
+    ang(1) = -90.0;
+    ang(0) = 0.0;
+    ang(2) = acos(m[5]);
+    if ( (sin(ang(2))<0.0) ^ (m[4]>0.0) ) ang(2) = -ang(2);
+    ang(2) *= 180.0/M_PI;
     return ang;
   }
 
   // Non-degenerate elevation - between -90 and +90
-  ang.y = asin( -m[2] );
+  ang(1) = asin( -m[2] );
 
   // Now work out azimuth - between -180 and +180
-  tmp = m[0]/cos(ang.y); // the denominator will not be zero
-  if ( tmp <= -1.0 ) ang.x = M_PI;
-  else if ( tmp >= 1.0 ) ang.x = 0.0;
-  else ang.x = acos( tmp );
-  if ( ((sin(ang.x) * cos(ang.y))>0.0) ^ ((m[1])>0.0) ) ang.x = -ang.x;
+  tmp = m[0]/cos(ang(1)); // the denominator will not be zero
+  if ( tmp <= -1.0 ) ang(0) = M_PI;
+  else if ( tmp >= 1.0 ) ang(0) = 0.0;
+  else ang(0) = acos( tmp );
+  if ( ((sin(ang(0)) * cos(ang(1)))>0.0) ^ ((m[1])>0.0) ) ang(0) = -ang(0);
 
   // Now work out roll - between -180 and +180
-  tmp = m[10]/cos(ang.y); // the denominator will not be zero
-  if ( tmp <= -1.0 ) ang.z = M_PI;
-  else if ( tmp >= 1.0 ) ang.z = 0.0;
-  else ang.z = acos( tmp );
-  if ( ((sin(ang.z) * cos(ang.y))>0.0) ^ ((m[6])>0.0) ) ang.z = -ang.z;
+  tmp = m[10]/cos(ang(1)); // the denominator will not be zero
+  if ( tmp <= -1.0 ) ang(2) = M_PI;
+  else if ( tmp >= 1.0 ) ang(2) = 0.0;
+  else ang(2) = acos( tmp );
+  if ( ((sin(ang(2)) * cos(ang(1)))>0.0) ^ ((m[6])>0.0) ) ang(2) = -ang(2);
 
   // Convert to degrees
-  ang.y *= 180.0/M_PI;
-  ang.x *= 180.0/M_PI;
-  ang.z *= 180.0/M_PI;
+  ang(1) *= 180.0/M_PI;
+  ang(0) *= 180.0/M_PI;
+  ang(2) *= 180.0/M_PI;
 
   return ang;
 }
@@ -181,20 +181,20 @@ void normalize_quat (quat_t &q)
   // Normalizes a quaternion
 {
   double mag;
-  // mag is exactly sqrt(q.v.x*q.v.x + q.v.y*q.v.y + q.v.z*q.v.z + q.s*q.s) and approximately (1.0 + q.v.x*q.v.x + q.v.y*q.v.y + q.v.z*q.v.z + q.s*q.s)/2.0
+  // mag is exactly sqrt(q.v(0)*q.v(0) + q.v(1)*q.v(1) + q.v(2)*q.v(2) + q.s*q.s) and approximately (1.0 + q.v(0)*q.v(0) + q.v(1)*q.v(1) + q.v(2)*q.v(2) + q.s*q.s)/2.0
   // when the quaternion is already nearly normalized. Avoiding the square root speeds up the calculation.
-  mag = (1.0 + q.v.x*q.v.x + q.v.y*q.v.y + q.v.z*q.v.z + q.s*q.s)/2.0;
+  mag = (1.0 + q.v(0)*q.v(0) + q.v(1)*q.v(1) + q.v(2)*q.v(2) + q.s*q.s)/2.0;
   if (mag > 0.0) {
-    q.v.x /= mag; q.v.y /= mag;
-    q.v.z /= mag; q.s /= mag;
+    q.v(0) /= mag; q.v(1) /= mag;
+    q.v(2) /= mag; q.s /= mag;
   }
 }
 
-quat_t axis_to_quat (vector3d a, const double phi)
+quat_t axis_to_quat (Eigen::Vector3d a, const double phi)
   // Given an axis and angle, compute quaternion
 {
   quat_t q;
-  q.v = a.norm() * sin(phi/2.0);
+  q.v = a.normalized() * sin(phi/2.0);
   q.s = cos(phi/2.0);
   return q;
 }
@@ -218,12 +218,12 @@ quat_t add_quats (quat_t q1, quat_t q2)
   // Given two rotations q1 and q2, calculate single equivalent quaternion
 {
   quat_t s;
-  vector3d t1 = q1.v * q2.s;
-  vector3d t2 = q2.v * q1.s;
-  vector3d t3 = q2.v ^ q1.v;
-  vector3d tf = t1+t2;
+  Eigen::Vector3d t1 = q1.v * q2.s;
+  Eigen::Vector3d t2 = q2.v * q1.s;
+  Eigen::Vector3d t3 = q2.v.cross(q1.v);
+  Eigen::Vector3d tf = t1+t2;
   s.v = tf+t3;
-  s.s = q1.s * q2.s - q1.v * q2.v;
+  s.s = q1.s * q2.s - q1.v.dot(q2.v);
   normalize_quat(s);
   return s;
 }
@@ -231,19 +231,19 @@ quat_t add_quats (quat_t q1, quat_t q2)
 void quat_to_matrix (double m[], const quat_t q)
   // Convert quaternion into a rotation matrix
 {
-  m[0] = 1.0 - 2.0 * (q.v.y * q.v.y + q.v.z * q.v.z);
-  m[1] = 2.0 * (q.v.x * q.v.y - q.v.z * q.s);
-  m[2] = 2.0 * (q.v.z * q.v.x + q.v.y * q.s);
+  m[0] = 1.0 - 2.0 * (q.v(1) * q.v(1) + q.v(2) * q.v(2));
+  m[1] = 2.0 * (q.v(0) * q.v(1) - q.v(2) * q.s);
+  m[2] = 2.0 * (q.v(2) * q.v(0) + q.v(1) * q.s);
   m[3] = 0.0;
 
-  m[4] = 2.0 * (q.v.x * q.v.y + q.v.z * q.s);
-  m[5] = 1.0 - 2.0 * (q.v.z * q.v.z + q.v.x * q.v.x);
-  m[6] = 2.0 * (q.v.y * q.v.z - q.v.x * q.s);
+  m[4] = 2.0 * (q.v(0) * q.v(1) + q.v(2) * q.s);
+  m[5] = 1.0 - 2.0 * (q.v(2) * q.v(2) + q.v(0) * q.v(0));
+  m[6] = 2.0 * (q.v(1) * q.v(2) - q.v(0) * q.s);
   m[7] = 0.0;
 
-  m[8] = 2.0 * (q.v.z * q.v.x - q.v.y * q.s);
-  m[9] = 2.0 * (q.v.y * q.v.z + q.v.x * q.s);
-  m[10] = 1.0 - 2.0 * (q.v.y * q.v.y + q.v.x * q.v.x);
+  m[8] = 2.0 * (q.v(2) * q.v(0) - q.v(1) * q.s);
+  m[9] = 2.0 * (q.v(1) * q.v(2) + q.v(0) * q.s);
+  m[10] = 1.0 - 2.0 * (q.v(1) * q.v(1) + q.v(0) * q.v(0));
   m[11] = 0.0;
 
   m[12] = 0.0; m[13] = 0.0; m[14] = 0.0; m[15] = 1.0;
@@ -253,19 +253,19 @@ quat_t track_quats (const double p1x, const double p1y, const double p2x, const 
   // Derive quaternion from x and y mouse displacements
 {
   double t, phi;
-  vector3d a, p1, p2, d;
+  Eigen::Vector3d a, p1, p2, d;
   quat_t q;
 
   if ((p1x == p2x) && (p1y == p2y)) {
-    q.v.x = 0.0; q.v.y = 0.0; q.v.z = 0.0; q.s = 1.0;
+    q.v(0) = 0.0; q.v(1) = 0.0; q.v(2) = 0.0; q.s = 1.0;
     return q;
   }
 
-  p1.x = p1x; p1.y = p1y;
-  p1.z = project_to_sphere(0.5, p1x, p1y);
-  p2.x = p2x; p2.y = p2y;
-  p2.z = project_to_sphere(0.5, p2x, p2y);
-  a = p2^p1; d = p1-p2; t = d.abs();
+  p1(0) = p1x; p1(1) = p1y;
+  p1(2) = project_to_sphere(0.5, p1x, p1y);
+  p2(0) = p2x; p2(1) = p2y;
+  p2(2) = project_to_sphere(0.5, p2x, p2y);
+  a = p2.cross(p1); d = p1-p2; t = d.norm();
   if (t > 1.0) t = 1.0;
   if (t < -1.0) t = -1.0;
   phi = 2.0 * asin(t);
@@ -535,13 +535,13 @@ void glut_print (float x, float y, string s)
   for (i = 0; i < s.length(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, s[i]);
 }
 
-double atmospheric_density (vector3d pos)
+double atmospheric_density (Eigen::Vector3d pos)
   // Simple exponential model between surface and exosphere (around 200km), surface density is approximately 0.017 kg/m^3,
   // scale height is approximately 11km
 {
   double alt;
 
-  alt = pos.abs()-MARS_RADIUS;
+  alt = pos.norm()-MARS_RADIUS;
   if ((alt > EXOSPHERE) || (alt < 0.0)) return 0.0;
   else return (0.017 * exp(-alt/11000.0));
 }
@@ -693,7 +693,7 @@ void draw_instrument_window (void)
   else draw_dial (view_width+GAP-150, INSTRUMENT_HEIGHT/2, landed ? 0.0 : -climb_speed, "Descent rate", "m/s");
 
   // Draw attitude stabilizer lamp
-  draw_indicator_lamp (view_width+GAP-150, INSTRUMENT_HEIGHT-18, "Attitude stabilizer off", "Attitude stabilizer on", stabilized_attitude);
+  draw_indicator_lamp (view_width+GAP-150, INSTRUMENT_HEIGHT-18, "Orientation Stabilizer off", "Orientation Stabilizer: Position", alignToPosition);
 
   // Draw ground speed meter
   draw_dial (view_width+GAP+100, INSTRUMENT_HEIGHT/2, landed ? 0.0 : ground_speed, "Ground speed", "m/s");
@@ -725,21 +725,21 @@ void draw_instrument_window (void)
 
   // Display coordinates
   glColor3f(1.0, 1.0, 1.0);
-  s.str(""); s << "x position " << fixed << position.x << " m";
+  s.str(""); s << "x position " << fixed << position(0) << " m";
   glut_print(view_width+GAP+240, INSTRUMENT_HEIGHT-97, s.str());
-  s.str(""); s << "velocity " << fixed << velocity_from_positions.x << " m/s";
+  s.str(""); s << "velocity " << fixed << velocity_from_positions(0) << " m/s";
   glut_print(view_width+GAP+380, INSTRUMENT_HEIGHT-97, s.str());
-  s.str(""); s << "y position " << fixed << position.y << " m";
+  s.str(""); s << "y position " << fixed << position(1) << " m";
   glut_print(view_width+GAP+240, INSTRUMENT_HEIGHT-117, s.str());
-  s.str(""); s << "velocity " << fixed << velocity_from_positions.y << " m/s";
+  s.str(""); s << "velocity " << fixed << velocity_from_positions(1) << " m/s";
   glut_print(view_width+GAP+380, INSTRUMENT_HEIGHT-117, s.str());
-  s.str(""); s << "z position " << fixed << position.z << " m";
+  s.str(""); s << "z position " << fixed << position(2) << " m";
   glut_print(view_width+GAP+240, INSTRUMENT_HEIGHT-137, s.str());
-  s.str(""); s << "velocity " << fixed << velocity_from_positions.z << " m/s";
+  s.str(""); s << "velocity " << fixed << velocity_from_positions(2) << " m/s";
   glut_print(view_width+GAP+380, INSTRUMENT_HEIGHT-137, s.str());
 
   // Draw thrust bar
-  s.str(""); s << "Thrust " << fixed << thrust_wrt_world().abs() << " N";
+  s.str(""); s << "Thrust " << fixed << thrust_wrt_world().norm() << " N";
   draw_control_bar(view_width+GAP+240, INSTRUMENT_HEIGHT-170, throttle, 1.0, 0.0, 0.0, s.str());
 
   // Draw fuel bar
@@ -934,7 +934,7 @@ void draw_orbital_window (void)
   glMultMatrixd(m);
   if (orbital_zoom > 2.0) { // gradual pan towards the lander when zoomed in
     sf = 1.0 - exp((2.0-orbital_zoom)/5.0);
-    glTranslated(-sf*position.x, -sf*position.y, -sf*position.z);
+    glTranslated(-sf*position(0), -sf*position(1), -sf*position(2));
   }
 
   if (static_lighting) {
@@ -967,11 +967,11 @@ void draw_orbital_window (void)
   glLineWidth(1.0);
   glBegin(GL_LINE_STRIP);
   glColor3f(0.0, 1.0, 1.0);
-  glVertex3d(position.x, position.y, position.z);
+  glVertex3d(position(0), position(1), position(2));
   j = (track.p+N_TRACK-1)%N_TRACK;
   for (i=0; i<track.n; i++) {
     glColor4f(0.0, 0.75*(N_TRACK-i)/N_TRACK, 0.75*(N_TRACK-i)/N_TRACK, 1.0*(N_TRACK-i)/N_TRACK);
-    glVertex3d(track.pos[j].x, track.pos[j].y, track.pos[j].z); 
+    glVertex3d(track.pos[j](0), track.pos[j](1), track.pos[j](2)); 
     j = (j+N_TRACK-1)%N_TRACK;
   }
   glEnd();
@@ -981,7 +981,7 @@ void draw_orbital_window (void)
   glColor3f(0.0, 1.0, 1.0);
   glPointSize(3.0);
   glBegin(GL_POINTS);
-  glVertex3d(position.x, position.y, position.z);
+  glVertex3d(position(0), position(1), position(2));
   glEnd();
   glEnable(GL_LIGHTING);
 
@@ -1068,38 +1068,43 @@ void update_closeup_coords (void)
   // This needs to be called every time step, even if the view is not being rendered, since any-angle
   // attitude stabilizers reference closeup_coords.right
 {
-  vector3d s, tv, t;
+  Eigen::Vector3d s, tv, t;
   double tmp;
 
   // Direction from surface to lander (radial) - this must map to the world y-axis
-  s = position.norm();
+  s = position.normalized();
 
   // Direction of tangential velocity - this must map to the world x-axis
-  tv = velocity_from_positions - (velocity_from_positions*s)*s;
-  if (tv.abs() < SMALL_NUM) // vertical motion only, use last recorded tangential velocity
-    tv = closeup_coords.backwards ? (closeup_coords.right*s)*s - closeup_coords.right : closeup_coords.right - (closeup_coords.right*s)*s; 
-  if (tv.abs() > SMALL_NUM) t = tv.norm();
+  tv = velocity_from_positions - (velocity_from_positions.dot(s))*s;
+  if (tv.norm() < SMALL_NUM) // vertical motion only, use last recorded tangential velocity
+      if (closeup_coords.backwards) {
+          tv = (closeup_coords.right.dot(s)) * s - closeup_coords.right;
+      }
+      else {
+          tv = closeup_coords.right - (closeup_coords.right.dot(s)) * s;
+      }
+  if (tv.norm() > SMALL_NUM) t = tv.normalized();
 
   // Check these two vectors are non-zero and perpendicular (they should be, unless s and closeup_coords.right happen to be parallel)
-  if ((tv.abs() <= SMALL_NUM) || (fabs(s*t) > SMALL_NUM)) {
+  if ((tv.norm() <= SMALL_NUM) || (fabs(s.dot(t)) > SMALL_NUM)) {
     // Set t to something perpendicular to s
-    t.x = -s.y; t.y = s.x; t.z = 0.0;
-    if (t.abs() < SMALL_NUM) {t.x = -s.z; t.y = 0.0; t.z = s.x;}
-    t = t.norm();
+    t(0) = -s(1); t(1) = s(0); t(2) = 0.0;
+    if (t.norm() < SMALL_NUM) {t(0) = -s(2); t(1) = 0.0; t(2) = s(0);}
+    t = t.normalized();
   }
 
   // Adjust the terrain texture angle if the lander has changed direction. The motion will still be along
   // the x-axis, so we need to rotate the texture to compensate.
   if (closeup_coords.initialized) {
     if (closeup_coords.backwards) {
-      tmp = -closeup_coords.right*t;
+      tmp = -1*closeup_coords.right.dot(t);
       if (tmp > 1.0) tmp = 1.0; if (tmp < -1.0) tmp = -1.0;
-      if ((-closeup_coords.right^t)*position.norm() < 0.0) terrain_angle += (180.0/M_PI)*acos(tmp);
+      if ((-closeup_coords.right.cross(t)).dot(position.normalized()) < 0.0) terrain_angle += (180.0/M_PI)*acos(tmp);
       else terrain_angle -= (180.0/M_PI)*acos(tmp);
     } else {
-      tmp = closeup_coords.right*t;
+      tmp = closeup_coords.right.dot(t);
       if (tmp > 1.0) tmp = 1.0; if (tmp < -1.0) tmp = -1.0;
-      if ((closeup_coords.right^t)*position.norm() < 0.0) terrain_angle += (180.0/M_PI)*acos(tmp);
+      if ((closeup_coords.right.cross(t)).dot(position.normalized()) < 0.0) terrain_angle += (180.0 / M_PI) * acos(tmp);
       else terrain_angle -= (180.0/M_PI)*acos(tmp);
     }
     while (terrain_angle < 0.0) terrain_angle += 360.0;
@@ -1109,7 +1114,7 @@ void update_closeup_coords (void)
   // Normally we maintain motion to the right, the one exception being when the ground speed passes
   // through zero and changes sign. A sudden 180 degree change of viewpoint would be confusing, so
   // in this instance we allow the lander to fly to the left.
-  if (closeup_coords.initialized && (closeup_coords.right*t < 0.0)) {
+  if (closeup_coords.initialized && (closeup_coords.right.dot(t) < 0.0)) {
     closeup_coords.backwards = true;
     closeup_coords.right = -1.0*t;
   } else {
@@ -1127,7 +1132,7 @@ void draw_closeup_window (void)
   static double ground_line_offset = 0.0;
   static double last_redraw_time = 0.0;
   static unsigned short rn = 0;
-  vector3d s, t, n;
+  Eigen::Vector3d s, t, n;
   double lander_drag, chute_drag, glow_factor, aspect_ratio, view_depth, f, tmp, cs, gs;
   double horizon, fog_density, cx, cy, m[16], m2[16], transition_altitude, ground_plane_size;
   unsigned short i, j, rtmp;
@@ -1144,8 +1149,8 @@ void draw_closeup_window (void)
   // Work out an atmospheric haze colour based on prevailing atmospheric density. The power law in the
   // expression below couples with the fog calculation further down, to ensure that the fog doesn't dim
   // the scene on the way down.
-  tmp = pow(atmospheric_density(position)/atmospheric_density(vector3d(MARS_RADIUS, 0.0, 0.0)), 0.5);
-  if (static_lighting) tmp *= 0.5 * (1.0 + position.norm()*vector3d(0.0, -1.0, 0.0)); // set sky colour
+  tmp = pow(atmospheric_density(position)/atmospheric_density(Eigen::Vector3d(MARS_RADIUS, 0.0, 0.0)), 0.5);
+  if (static_lighting) tmp *= 0.5 * (1.0 + position.normalized().dot(Eigen::Vector3d(0.0, -1.0, 0.0))); // set sky colour
   fogcolour[0] = tmp*0.98; fogcolour[1] = tmp*0.67; fogcolour[2] = tmp*0.52; fogcolour[3] = 0.0;
   glClearColor(tmp*0.98, tmp*0.67, tmp*0.52, 0.0);
 
@@ -1165,7 +1170,7 @@ void draw_closeup_window (void)
   // with the fog decreasing towards touchdown.
   if (altitude > EXOSPHERE) gluPerspective(CLOSEUP_VIEW_ANGLE, aspect_ratio, 1.0, closeup_offset + 2.0*MARS_RADIUS);
   else {
-    horizon = sqrt(position.abs2() - MARS_RADIUS*MARS_RADIUS);
+    horizon = sqrt(position.squaredNorm() - MARS_RADIUS*MARS_RADIUS);
     if (altitude > transition_altitude) {
       f = (altitude-transition_altitude) / (EXOSPHERE-transition_altitude);
       if (f < SMALL_NUM) fog_density = 1000.0; else fog_density = (1.0-f) / (f*horizon);
@@ -1195,18 +1200,18 @@ void draw_closeup_window (void)
   // coordinate system.
 
   // Direction from surface to lander (radial) - this must map to the world y-axis
-  s = position.norm();
+  s = position.normalized();
 
   // Direction of tangential velocity - this must map to the world x-axis
   t = closeup_coords.backwards ? -closeup_coords.right : closeup_coords.right; 
 
   // Mutual perpendicular to these two vectors - this must map to the world z-axis
-  n = t^s;
+  n = t.cross(s);
 
   // Construct modelling matrix (rotation only) from these three vectors
-  m[0] = t.x; m[1] = t.y; m[2] = t.z; m[3] = 0.0;
-  m[4] = s.x; m[5] = s.y; m[6] = s.z; m[7] = 0.0;
-  m[8] = n.x; m[9] = n.y; m[10] = n.z; m[11] = 0.0;
+  m[0] = t(0); m[1] = t(1); m[2] = t(2); m[3] = 0.0;
+  m[4] = s(0); m[5] = s(1); m[6] = s(2); m[7] = 0.0;
+  m[8] = n(0); m[9] = n(1); m[10] = n(2); m[11] = 0.0;
   m[12] = 0.0; m[13] = 0.0; m[14] = 0.0; m[15] = 1.0;
   invert(m, m2); 
 
@@ -1369,7 +1374,7 @@ void draw_closeup_window (void)
   }
 
   glDisable(GL_FOG); // fog only applies to the ground
-  dark_side = (static_lighting && (position.y > 0.0) && (sqrt(position.x*position.x + position.z*position.z) < MARS_RADIUS));
+  dark_side = (static_lighting && (position(1) > 0.0) && (sqrt(position(0)*position(0) + position(2)*position(2)) < MARS_RADIUS));
   if (dark_side) { // in the shadow of the planet, we need some diffuse lighting to highlight the lander
     glDisable(GL_LIGHT2); glDisable(GL_LIGHT3); 
     glEnable(GL_LIGHT4); glEnable(GL_LIGHT5);
@@ -1378,12 +1383,12 @@ void draw_closeup_window (void)
   // Work out drag on lander - if it's high, we will surround the lander with an incandescent glow. Also
   // work out drag on parachute: if it's zero, we will not draw the parachute fully open behind the lander.
   // Assume high Reynolds number, quadratic drag = -0.5 * rho * v^2 * A * C_d
-  lander_drag = 0.5*DRAG_COEF_LANDER*atmospheric_density(position)*M_PI*LANDER_SIZE*LANDER_SIZE*velocity_from_positions.abs2();
-  chute_drag = 0.5*DRAG_COEF_CHUTE*atmospheric_density(position)*5.0*2.0*LANDER_SIZE*2.0*LANDER_SIZE*velocity_from_positions.abs2();
+  lander_drag = 0.5*DRAG_COEF_LANDER*atmospheric_density(position)*M_PI*LANDER_SIZE*LANDER_SIZE*velocity_from_positions.squaredNorm();
+  chute_drag = 0.5*DRAG_COEF_CHUTE*atmospheric_density(position)*5.0*2.0*LANDER_SIZE*2.0*LANDER_SIZE*velocity_from_positions.squaredNorm();
 
   // Draw the lander's parachute - behind the lander in the direction of travel
   if ( (parachute_status == DEPLOYED) && !crashed ) {
-    if (velocity_from_positions.abs() < SMALL_NUM) {
+    if (velocity_from_positions.norm() < SMALL_NUM) {
       // Lander is apparently stationary - so draw the parachute above and near to the lander
       gs = 0.0; cs = -1.0; tmp = 2.0;
     } else {
@@ -1406,11 +1411,33 @@ void draw_closeup_window (void)
   glMultMatrixd(m2);
 
   // Lander orientation relative to planetary coordinate system - xyz Euler angles
-  xyz_euler_to_matrix(orientation, m);
-  glMultMatrixd(m);
+
+  //m = rotationArray;
+  //xyz_euler_to_matrix(orientation, m);
+  glMultMatrixd(rotationArray);
 
   // Put lander's centre of gravity at the origin
   glTranslated(0.0, 0.0, -LANDER_SIZE/2);
+
+  glColor3f(1.0, 0.0, 0.0);
+  glPointSize(10.0);
+  glBegin(GL_POINTS);
+  glVertex3d(10,0,0);
+  glEnd();
+
+  glColor3f(0.0, 1.0, 0.0);
+  glPointSize(10.0);
+  glBegin(GL_POINTS);
+  glVertex3d(0,10,0);
+  glEnd();
+
+  glColor3f(0.0, 0.0, 1.0);
+  glPointSize(.0);
+  glBegin(GL_POINTS);
+  glVertex3d(0,0,10);
+  glEnd();
+
+
 
   // Draw lander
   if (!crashed) {
@@ -1424,20 +1451,20 @@ void draw_closeup_window (void)
   }
 
   // Draw engine exhaust flare
-  if (thrust_wrt_world().abs() > 0.0) {
+  if (thrust_wrt_world().norm() > 0.0) {
     glColor3f(1.0, 0.5, 0.0);
     glRotated(180.0, 1.0, 0.0, 0.0);
     glDisable(GL_LIGHTING);
-    glutCone(LANDER_SIZE/2, 2*LANDER_SIZE*thrust_wrt_world().abs()/MAX_THRUST, 50, 50, false);
+    glutCone(LANDER_SIZE/2, 2*LANDER_SIZE*thrust_wrt_world().norm()/MAX_THRUST, 50, 50, false);
     glEnable(GL_LIGHTING);
   }
 
   glPopMatrix(); // back to the world coordinate system
 
   // Draw incandescent glow surrounding lander
-  if (lander_drag*velocity_from_positions.abs() > HEAT_FLUX_GLOW_THRESHOLD) {
+  if (lander_drag*velocity_from_positions.norm() > HEAT_FLUX_GLOW_THRESHOLD) {
     // Calculate an heuristic "glow factor", in the range 0 to 1, for graphics effects
-    glow_factor = (lander_drag*velocity_from_positions.abs()-HEAT_FLUX_GLOW_THRESHOLD) / (4.0*HEAT_FLUX_GLOW_THRESHOLD); 
+    glow_factor = (lander_drag*velocity_from_positions.norm()-HEAT_FLUX_GLOW_THRESHOLD) / (4.0*HEAT_FLUX_GLOW_THRESHOLD); 
     if (glow_factor > 1.0) glow_factor = 1.0;
     glow_factor *= 0.7 + 0.3*randtab[rn]; rn = (rn+1)%N_RAND; // a little random variation for added realism
     glRotated((180.0/M_PI)*atan2(climb_speed, ground_speed), 0.0, 0.0, 1.0);
@@ -1509,10 +1536,10 @@ bool safe_to_deploy_parachute (void)
   double drag;
 
   // Assume high Reynolds number, quadratic drag = -0.5 * rho * v^2 * A * C_d
-  drag = 0.5*DRAG_COEF_CHUTE*atmospheric_density(position)*5.0*2.0*LANDER_SIZE*2.0*LANDER_SIZE*velocity_from_positions.abs2();
+  drag = 0.5*DRAG_COEF_CHUTE*atmospheric_density(position)*5.0*2.0*LANDER_SIZE*2.0*LANDER_SIZE*velocity_from_positions.squaredNorm();
   // Do not use the global variable "altitude" here, in case this function is called from within the
   // numerical_dynamics function, before altitude is updated in the update_visualization function
-  if ((drag > MAX_PARACHUTE_DRAG) || ((velocity_from_positions.abs() > MAX_PARACHUTE_SPEED) && ((position.abs() - MARS_RADIUS) < EXOSPHERE))) return false;
+  if ((drag > MAX_PARACHUTE_DRAG) || ((velocity_from_positions.norm() > MAX_PARACHUTE_SPEED) && ((position.norm() - MARS_RADIUS) < EXOSPHERE))) return false;
   else return true;
 }
 
@@ -1520,35 +1547,35 @@ void update_visualization (void)
   // The visualization part of the idle function. Re-estimates altitude, velocity, climb speed and ground
   // speed from current and previous positions. Updates throttle and fuel levels, then redraws all subwindows.
 {
-  static vector3d last_track_position;
-  vector3d av_p, d;
+  static Eigen::Vector3d last_track_position;
+  Eigen::Vector3d av_p, d;
   double a, b, c, mu;
 
   simulation_time += delta_t;
-  altitude = position.abs() - MARS_RADIUS;
+  altitude = position.norm() - MARS_RADIUS;
 
   // Use average of current and previous positions when calculating climb and ground speeds
-  av_p = (position + last_position).norm();
+  av_p = (position + last_position).normalized();
   if (delta_t != 0.0) velocity_from_positions = (position - last_position)/delta_t;
-  else velocity_from_positions = vector3d(0.0, 0.0, 0.0);
-  climb_speed = velocity_from_positions*av_p;
-  ground_speed = (velocity_from_positions - climb_speed*av_p).abs();
+  else velocity_from_positions = Eigen::Vector3d(0.0, 0.0, 0.0);
+  climb_speed = velocity_from_positions.dot(av_p);
+  ground_speed = (velocity_from_positions - climb_speed*av_p).norm();
 
   // Check to see whether the lander has landed
   if (altitude < LANDER_SIZE/2.0) {
     glutIdleFunc(NULL);
     // Estimate position and time of impact
     d = position - last_position;
-    a = d.abs2();
-    b = 2.0*last_position*d;
-    c = last_position.abs2() - (MARS_RADIUS + LANDER_SIZE/2.0) * (MARS_RADIUS + LANDER_SIZE/2.0);
+    a = d.squaredNorm();
+    b = 2.0*last_position.dot(d);
+    c = last_position.squaredNorm() - (MARS_RADIUS + LANDER_SIZE/2.0) * (MARS_RADIUS + LANDER_SIZE/2.0);
     mu = (-b - sqrt(b*b-4.0*a*c))/(2.0*a);
     position = last_position + mu*d;
     simulation_time -= (1.0-mu)*delta_t; 
     altitude = LANDER_SIZE/2.0;
     landed = true;
     if ((fabs(climb_speed) > MAX_IMPACT_DESCENT_RATE) || (fabs(ground_speed) > MAX_IMPACT_GROUND_SPEED)) crashed = true;
-    velocity_from_positions = vector3d(0.0, 0.0, 0.0);
+    velocity_from_positions = Eigen::Vector3d(0.0, 0.0, 0.0);
   }
 
   // Update throttle and fuel (throttle might have been adjusted by the autopilot)
@@ -1569,8 +1596,8 @@ void update_visualization (void)
 
   // Update record of lander's previous positions, but only if the position or the velocity has 
   // changed significantly since the last update
-  if ( !track.n || (position-last_track_position).norm() * velocity_from_positions.norm() < TRACK_ANGLE_DELTA
-      || (position-last_track_position).abs() > TRACK_DISTANCE_DELTA ) {
+  if ( !track.n || (position-last_track_position).normalized().dot(velocity_from_positions.normalized()) < TRACK_ANGLE_DELTA
+      || (position-last_track_position).norm() > TRACK_DISTANCE_DELTA ) {
     track.pos[track.p] = position;
     track.n++; if (track.n > N_TRACK) track.n = N_TRACK;
     track.p++; if (track.p == N_TRACK) track.p = 0;
@@ -1581,13 +1608,12 @@ void update_visualization (void)
   refresh_all_subwindows();
 }
 
-void attitude_stabilization (void)
+void AlignToVector (Eigen::Vector3d vector)
   // Three-axis stabilization to ensure the lander's base is always pointing downwards 
 {
-  vector3d up, left, out;
-  double m[16];
+  Eigen::Vector3d up, left, out;
 
-  up = position.norm(); // this is the direction we want the lander's nose to point in
+  up = vector.normalized(); // this is the direction we want the lander's nose to point in
 
   // !!!!!!!!!!!!! HINT TO STUDENTS ATTEMPTING THE EXTENSION EXERCISES !!!!!!!!!!!!!!
   // For any-angle attitude control, we just need to set "up" to something different,
@@ -1599,24 +1625,31 @@ void attitude_stabilization (void)
   // rotation, search the internet for information on the axis-angle rotation formula.
 
   // Set left to something perpendicular to up
-  left.x = -up.y; left.y = up.x; left.z = 0.0;
-  if (left.abs() < SMALL_NUM) {left.x = -up.z; left.y = 0.0; left.z = up.x;}
-  left = left.norm();  
-  out = left^up;
+  left(0) = -up(1); left(1) = up(0); left(2) = 0.0;
+  if (left.norm() < SMALL_NUM) {left(0) = -up(2); left(1) = 0.0; left(2) = up(0);}
+  left = left.normalized();  
+  out = left.cross(up);
   // Construct modelling matrix (rotation only) from these three vectors
-  m[0] = out.x; m[1] = out.y; m[2] = out.z; m[3] = 0.0;
-  m[4] = left.x; m[5] = left.y; m[6] = left.z; m[7] = 0.0;
-  m[8] = up.x; m[9] = up.y; m[10] = up.z; m[11] = 0.0;
-  m[12] = 0.0; m[13] = 0.0; m[14] = 0.0; m[15] = 1.0;
-  // Decomponse into xyz Euler angles
-  orientation = matrix_to_xyz_euler(m);
+  Eigen::Matrix4d rotationMatrixForStabilisation = Eigen::Matrix4d::Identity();
+  rotationMatrixForStabilisation.block<3, 1>(0, 0) = out;
+  rotationMatrixForStabilisation.block<3, 1>(0, 1) = left;
+  rotationMatrixForStabilisation.block<3, 1>(0, 2) = up;
+
+
+  /*rotationArray[0] = out(0); rotationArray[1] = out(1); rotationArray[2] = out(2); rotationArray[3] = 0.0;
+  rotationArray[4] = left(0); rotationArray[5] = left(1); rotationArray[6] = left(2); rotationArray[7] = 0.0;
+  rotationArray[8] = up(0); rotationArray[9] = up(1); rotationArray[10] = up(2); rotationArray[11] = 0.0;
+  rotationArray[12] = 0.0; rotationArray[13] = 0.0; rotationArray[14] = 0.0; rotationArray[15] = 1.0;*/
+
+  Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0) = rotationMatrixForStabilisation;
+
 }
 
-vector3d thrust_wrt_world (void)
+Eigen::Vector3d thrust_wrt_world (void)
   // Works out thrust vector in the world reference frame, given the lander's orientation
 {
-  double m[16], k, delayed_throttle, lag = ENGINE_LAG;
-  vector3d a, b;
+  double k, delayed_throttle, lag = ENGINE_LAG;
+  Eigen::Vector3d a, b;
   static double lagged_throttle = 0.0;
   static double last_time_lag_updated = -1.0;
 
@@ -1642,15 +1675,15 @@ vector3d thrust_wrt_world (void)
     last_time_lag_updated = simulation_time;
   }
 
-  if (stabilized_attitude && (stabilized_attitude_angle == 0)) { // specific solution, avoids rounding errors in the more general calculation below
-    b = lagged_throttle*MAX_THRUST*position.norm();
-  } else {
-    a.x = 0.0; a.y = 0.0; a.z = lagged_throttle*MAX_THRUST;
-    xyz_euler_to_matrix(orientation, m);
-    b.x = m[0]*a.x + m[4]*a.y + m[8]*a.z;
-    b.y = m[1]*a.x + m[5]*a.y + m[9]*a.z;
-    b.z = m[2]*a.x + m[6]*a.y + m[10]*a.z;
-  }
+    //Find output Vector
+
+    a(0) = 0.0; a(1) = 0.0; a(2) = lagged_throttle*MAX_THRUST;
+    //xyz_euler_to_matrix(orientation, m);
+
+    b(0) = rotationArray[0]*a(0) + rotationArray[4]*a(1) + rotationArray[8]*a(2);
+    b(1) = rotationArray[1]*a(0) + rotationArray[5]*a(1) + rotationArray[9]*a(2);
+    b(2) = rotationArray[2]*a(0) + rotationArray[6]*a(1) + rotationArray[10]*a(2);
+ 
   return b;
 }
 
@@ -1686,7 +1719,7 @@ void update_lander_state (void)
 void reset_simulation (void)
   // Resets the simulation to the initial state
 {
-  vector3d p, tv;
+  Eigen::Vector3d p, tv;
   unsigned long i;
 
   // Reset these three lander parameters here, so they can be overwritten in initialize_simulation() if so desired
@@ -1697,23 +1730,29 @@ void reset_simulation (void)
   // Restore initial lander state
   initialize_simulation();
 
+  //Reset orientation based parameters
+  Initialised = false;
+  rotQuat = Eigen::Quaterniond::Identity(); //Quaternion describing current orientation
+  angularPitchVelocity = 0;
+  angularYawVelocity = 0;
+
   // Check whether the lander is underground - if so, make sure it doesn't move anywhere
   landed = false;
   crashed = false;
-  altitude = position.abs() - MARS_RADIUS;
+  altitude = position.norm() - MARS_RADIUS;
   if (altitude < LANDER_SIZE/2.0) {
     glutIdleFunc(NULL);
     landed = true;
-    velocity = vector3d(0.0, 0.0, 0.0);
+    velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
   }
 
   // Visualisation routine's record of various speeds and velocities
   velocity_from_positions = velocity;
   last_position = position - delta_t*velocity_from_positions;
-  p = position.norm();
-  climb_speed = velocity_from_positions*p;
+  p = position.normalized();
+  climb_speed = velocity_from_positions.dot(p);
   tv = velocity_from_positions - climb_speed*p;
-  ground_speed = tv.abs();
+  ground_speed = tv.norm();
 
   // Miscellaneous state variables
   throttle_control = (short)(throttle*THROTTLE_GRANULARITY + 0.5);
@@ -1723,7 +1762,7 @@ void reset_simulation (void)
   parachute_lost = false;
   closeup_coords.initialized = false;
   closeup_coords.backwards = false;
-  closeup_coords.right = vector3d(1.0, 0.0, 0.0);
+  closeup_coords.right = Eigen::Vector3d(1.0, 0.0, 0.0);
   update_closeup_coords();
 
   // Initialize the throttle history buffer
@@ -2045,9 +2084,14 @@ void glut_key (unsigned char k, int x, int y)
     if (paused) refresh_all_subwindows();
     break;
 
-  case 'y': case 'Y':
+  case 'c': case 'C':
     // y or Y - attitude stabilizer
-    if (!autopilot_enabled && !landed) stabilized_attitude = !stabilized_attitude;
+    if (!autopilot_enabled && !landed) alignToPosition = !alignToPosition;
+    alignToVelocity = false;
+    if (!alignToPosition) {
+        Eigen::Matrix4d StabilizedOrientation = Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0);
+        rotQuat = StabilizedOrientation.block<3,3>(0,0);
+    }
     if (paused) refresh_all_subwindows();
     break;
 
@@ -2083,6 +2127,18 @@ void glut_key (unsigned char k, int x, int y)
     else refresh_all_subwindows();
     paused = true;
     break;
+    
+  case 'v' : case 'V':
+      //v or V - align with orbital velocity
+      if (!autopilot_enabled && !landed) alignToVelocity = !alignToVelocity;
+      alignToPosition = false;
+      if (!alignToVelocity) {
+          Eigen::Matrix4d StabilizedOrientation = Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0);
+          rotQuat = StabilizedOrientation.block<3, 3>(0, 0);
+      }
+      if (paused) refresh_all_subwindows();
+      break;
+
 
   }
 }
@@ -2095,7 +2151,6 @@ int main (int argc, char* argv[])
 
   // Main GLUT window
   glutInit(&argc, argv);
-  simulation_speed = 0;
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutInitWindowPosition(0, 0);
   glutInitWindowSize(PREFERRED_WIDTH, PREFERRED_HEIGHT);
@@ -2160,8 +2215,8 @@ int main (int argc, char* argv[])
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
   quadObj = gluNewQuadric();
-  orbital_quat.v.x = 0.53; orbital_quat.v.y = -0.21;
-  orbital_quat.v.z = 0.047; orbital_quat.s = 0.82;
+  orbital_quat.v(0) = 0.53; orbital_quat.v(1) = -0.21;
+  orbital_quat.v(2) = 0.047; orbital_quat.s = 0.82;
   normalize_quat(orbital_quat);
   save_orbital_zoom = 1.0;
   orbital_zoom = 1.0;

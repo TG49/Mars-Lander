@@ -1,0 +1,6 @@
+
+
+1. Allow automatic orientation to the current velocity vector
+2. Fix Attitude Stabilisation function (point position normal)
+3. Add texture to mars
+4. Add orbital prediction path

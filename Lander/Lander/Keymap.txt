@@ -1,0 +1,37 @@
+Key Map
+
+0-10 – simulation initial conditions
+A - Yaw Down
+B
+C
+D - Yaw Up
+E
+F
+G
+H - Help
+I
+J
+K
+L - Lights
+M - Autopilot
+N
+O
+P - Parachute
+Q
+R
+S - Pitch Down
+T - Texture
+U
+V - Align to Velocity
+W - Pitch Up
+X
+Y - Align to Position
+Z
+
+Space - Pause
+Left - Decrease simulation time
+Right - Increase simulation time
+Up - Throttle Up
+Down - Throttle Down
+
+

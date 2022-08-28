@@ -1,0 +1,48 @@
+﻿  extension.cpp
+C:\Users\toman\Desktop\Mars Lander\lander\src\lander.h(27,1): warning C4005: 'NDEBUG': macro redefinition
+C:\Users\toman\Desktop\Mars Lander\lander\src\lander.h(27,1): message : 'NDEBUG' previously declared on the command line
+C:\Includes\eigen\Eigen\src\Core\AssignEvaluator.h(888,3): error C2338: static_assert failed: 'YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY'
+C:\Includes\eigen\Eigen\src\Core\AssignEvaluator.h(857): message : see reference to function template instantiation 'void Eigen::internal::call_assignment_no_alias<Dst,Src,Func>(Dst &,const Src &,const Func &)' being compiled
+          with
+          [
+              Dst=Eigen::Matrix<float,3,1,0,3,1>,
+              Src=Eigen::Matrix<double,3,1,0,3,1>,
+              Func=Eigen::internal::assign_op<float,double>
+          ]
+C:\Includes\eigen\Eigen\src\Core\AssignEvaluator.h(835): message : see reference to function template instantiation 'void Eigen::internal::call_assignment<Dst,Src,Eigen::internal::assign_op<float,double>>(Dst &,const Src &,const Func &,void *)' being compiled
+          with
+          [
+              Dst=Eigen::Matrix<float,3,1,0,3,1>,
+              Src=Eigen::Matrix<double,3,1,0,3,1>,
+              Func=Eigen::internal::assign_op<float,double>
+          ]
+C:\Includes\eigen\Eigen\src\Core\PlainObjectBase.h(779): message : see reference to function template instantiation 'void Eigen::internal::call_assignment<Derived,Eigen::Matrix<double,3,1,0,3,1>>(Dst &,const Src &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<float,3,1,0,3,1>,
+              Dst=Eigen::Matrix<float,3,1,0,3,1>,
+              Src=Eigen::Matrix<double,3,1,0,3,1>
+          ]
+C:\Includes\eigen\Eigen\src\Core\Matrix.h(225): message : see reference to function template instantiation 'Derived &Eigen::PlainObjectBase<Derived>::_set<Eigen::Matrix<double,3,1,0,3,1>>(const Eigen::DenseBase<Eigen::Matrix<double,3,1,0,3,1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<float,3,1,0,3,1>
+          ]
+C:\Includes\eigen\Eigen\src\Core\Matrix.h(225): message : see reference to function template instantiation 'Derived &Eigen::PlainObjectBase<Derived>::_set<Eigen::Matrix<double,3,1,0,3,1>>(const Eigen::DenseBase<Eigen::Matrix<double,3,1,0,3,1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<float,3,1,0,3,1>
+          ]
+C:\Users\toman\Desktop\Mars Lander\lander\src\extension.cpp(79): message : see reference to function template instantiation 'Eigen::Matrix<float,3,1,0,3,1> &Eigen::Matrix<float,3,1,0,3,1>::operator =<Derived>(const Eigen::DenseBase<Derived> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,3,1,0,3,1>
+          ]
+C:\Users\toman\Desktop\Mars Lander\lander\src\extension.cpp(79): message : see reference to function template instantiation 'Eigen::Matrix<float,3,1,0,3,1> &Eigen::Matrix<float,3,1,0,3,1>::operator =<Derived>(const Eigen::DenseBase<Derived> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,3,1,0,3,1>
+          ]
+  lander.cpp
+C:\Users\toman\Desktop\Mars Lander\lander\src\lander.h(27,1): warning C4005: 'NDEBUG': macro redefinition
+C:\Users\toman\Desktop\Mars Lander\lander\src\lander.h(27,1): message : 'NDEBUG' previously declared on the command line
