@@ -76,6 +76,8 @@
 
 #define DECLARE_GLOBAL_VARIABLES
 #include "lander.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 void invert (double m[], double mout[])
   // Inverts a 4x4 OpenGL rotation matrix
@@ -923,6 +925,7 @@ void draw_orbital_window (void)
   unsigned short i, j;
   double m[16], sf;
   GLint slices, stacks;
+  bool textureShow = true;
 
   glutSetWindow(orbital_window);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -944,41 +947,56 @@ void draw_orbital_window (void)
   }
 
   // Draw planet
-  glColor3f(0.63, 0.33, 0.22);
-  glLineWidth(1.0);
+ 
+
   glPushMatrix();
-  glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-  if (orbital_zoom > 1.0) {
-    slices = (int)(16*orbital_zoom); if (slices > 160) slices = 160;
-    stacks = (int)(10*orbital_zoom); if (stacks > 100) stacks = 100;
-  } else {
-    slices = 16; stacks = 10;
-  }
-  gluQuadricDrawStyle(quadObj, GLU_FILL);
-  gluSphere(quadObj, (1.0 - 0.01/orbital_zoom)*MARS_RADIUS, slices, stacks);
-  glColor3f(0.31, 0.16, 0.11);
+  glEnable(GL_TEXTURE_2D);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+  glBindTexture(GL_TEXTURE_2D, planet);
+  cout << planet << endl;
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  qobj = gluNewQuadric();
+  gluQuadricTexture(qobj, GL_TRUE);
+  gluSphere(qobj, MARS_RADIUS, 20, 20);
+  gluDeleteQuadric(qobj);
+  glDisable(GL_TEXTURE_2D);
+
+  glFlush();
+  //glBindTexture(GL_TEXTURE_2D, 0);
+  glFlush();
+  glPopMatrix();
+  glDisable(GL_TEXTURE_2D);
+
+
+  /*glColor3f(0.31, 0.16, 0.11);
   gluQuadricDrawStyle(quadObj, GLU_LINE);
   gluSphere(quadObj, MARS_RADIUS, slices, stacks);
-  glPopMatrix();
+  gluDeleteQuadric(quadObj);*/
 
   // Draw previous lander positions in cyan that fades with time
+
   glDisable(GL_LIGHTING);
   glEnable(GL_BLEND);
   glLineWidth(1.0);
   glBegin(GL_LINE_STRIP);
-  glColor3f(0.0, 1.0, 1.0);
+  //glColor3f(1.0, 1.0, 1.0);
   glVertex3d(position(0), position(1), position(2));
   j = (track.p+N_TRACK-1)%N_TRACK;
   for (i=0; i<track.n; i++) {
-    glColor4f(0.0, 0.75*(N_TRACK-i)/N_TRACK, 0.75*(N_TRACK-i)/N_TRACK, 1.0*(N_TRACK-i)/N_TRACK);
+    //glColor4f(0.0, 0.75*(N_TRACK-i)/N_TRACK, 0.75*(N_TRACK-i)/N_TRACK, 1.0*(N_TRACK-i)/N_TRACK);
     glVertex3d(track.pos[j](0), track.pos[j](1), track.pos[j](2)); 
     j = (j+N_TRACK-1)%N_TRACK;
   }
   glEnd();
   glDisable(GL_BLEND);
 
-  // Draw lander as a cyan dot
-  glColor3f(0.0, 1.0, 1.0);
+ // Draw lander as a cyan dot
+ // glColor3f(0.0, 0.0, 1.0);
   glPointSize(3.0);
   glBegin(GL_POINTS);
   glVertex3d(position(0), position(1), position(2));
@@ -1058,7 +1076,7 @@ bool generate_terrain_texture (void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     return true;
   } else return false;
 }
@@ -1252,7 +1270,8 @@ void draw_closeup_window (void)
 
     // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
     // nearby, to get the fog calculations correct in all OpenGL implementations.
-    glBindTexture(GL_TEXTURE_2D, terrain_texture);
+    glBindTexture(GL_TEXTURE_2D, planet);
+    cout << planet << endl;
     if (do_texture) glEnable(GL_TEXTURE_2D);
     glNormal3d(0.0, 1.0, 0.0);
     glPushMatrix();
@@ -2073,7 +2092,6 @@ void glut_key (unsigned char k, int x, int y)
 
   case 't': case 'T':
     // t or T - terrain texture
-    do_texture = !do_texture;
     if (!texture_available) do_texture = false;
     if (paused || landed) refresh_all_subwindows();
     break;
@@ -2143,11 +2161,96 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
+bool loadTextures(GLuint &planet, GLuint &surface) {
+
+    /*unsigned char* tex_image;
+    unsigned long x;
+    GLsizei ts;
+    bool texture_ok;
+
+    ts = TERRAIN_TEXTURE_SIZE;
+    texture_ok = false;
+    tex_image = (unsigned char*)calloc(sizeof(unsigned char), TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE);
+    for (x = 0; x < TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE; x++) tex_image[x] = 192 + (unsigned char)(63.0 * rand() / RAND_MAX);
+    glGenTextures(1, &terrain_texture);
+    glBindTexture(GL_TEXTURE_2D, terrain_texture);
+    while (!texture_ok && (ts >= 256)) { // try progressively smaller texture maps, give up below 256x256
+        glGetError(); // clear error
+        if (!gluBuild2DMipmaps(GL_TEXTURE_2D, GL_LUMINANCE, ts, ts, GL_LUMINANCE, GL_UNSIGNED_BYTE, tex_image) && (glGetError() == GL_NO_ERROR)) texture_ok = true;
+        else ts /= 2;
+    }
+    free(tex_image);
+    if (texture_ok) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        return true;
+    }
+    else return false;*/
+    
+    //Store texture in unsigned int array
+
+    int width, height, nrChannels;
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    unsigned char* data = stbi_load("mars_1k_color.jpg", &width, &height, &nrChannels, 0);
+
+    GLuint* textures = new GLuint[2];
+    glGenTextures(2, textures);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    //unsigned char data[] = { 255, 0, 0, 255 };
+    if (data)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    else
+        std::cout << "fail";
+
+    planet = textures[1];
+    unsigned char* tex_image;
+    unsigned long x;
+    GLsizei ts;
+    bool texture_ok;
+
+    ts = TERRAIN_TEXTURE_SIZE;
+    texture_ok = false;
+    tex_image = (unsigned char*)calloc(sizeof(unsigned char), TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE);
+    for (x = 0; x < TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE; x++) tex_image[x] = 192 + (unsigned char)(63.0 * rand() / RAND_MAX);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    while (!texture_ok && (ts >= 256)) { // try progressively smaller texture maps, give up below 256x256
+        glGetError(); // clear error
+        if (!gluBuild2DMipmaps(GL_TEXTURE_2D, GL_LUMINANCE, ts, ts, GL_LUMINANCE, GL_UNSIGNED_BYTE, tex_image) && (glGetError() == GL_NO_ERROR)) texture_ok = true;
+        else ts /= 2;
+    }
+    free(tex_image);
+    if (texture_ok) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        surface = textures[0];
+        delete textures;
+        return true;
+    }
+    else {
+        surface = textures[0];
+        delete textures;
+        return false;
+    }
+   
+
+}
+
 int main (int argc, char* argv[])
   // Initializes GLUT windows and lander state, then enters GLUT main loop
 {
   int i;
-
+  GLuint* textures = new GLuint[2];
 
   // Main GLUT window
   glutInit(&argc, argv);
@@ -2166,6 +2269,7 @@ int main (int argc, char* argv[])
   glutIdleFunc(update_lander_state);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
+
 
   // The close-up view subwindow
   closeup_window = glutCreateSubWindow(main_window, GAP, GAP, view_width, view_height);
@@ -2188,7 +2292,7 @@ int main (int argc, char* argv[])
   glutMotionFunc(closeup_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  texture_available = generate_terrain_texture();
+  texture_available = loadTextures(planet, surface);
   if (!texture_available) do_texture = false;
   closeup_offset = 50.0;
   closeup_xr = 10.0;
@@ -2214,7 +2318,7 @@ int main (int argc, char* argv[])
   glutMotionFunc(orbital_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  quadObj = gluNewQuadric();
+  //quadObj = gluNewQuadric();
   orbital_quat.v(0) = 0.53; orbital_quat.v(1) = -0.21;
   orbital_quat.v(2) = 0.047; orbital_quat.s = 0.82;
   normalize_quat(orbital_quat);

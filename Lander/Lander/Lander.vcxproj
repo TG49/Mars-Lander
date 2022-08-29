@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(GLUT_ROOT_PATH)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>"$(GLUT_ROOT_PATH)\build\lib\Release";$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(GLUT_ROOT_PATH)\build\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(GLUT_ROOT_PATH)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>"$(GLUT_ROOT_PATH)\build\lib\Release";$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(GLUT_ROOT_PATH)\build\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(GLUT_ROOT_PATH)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>"$(GLUT_ROOT_PATH)\build\lib\Release";$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(GLUT_ROOT_PATH)\build\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(GLUT_ROOT_PATH)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>"$(GLUT_ROOT_PATH)\build\lib\Release";$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(GLUT_ROOT_PATH)\build\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -170,10 +170,16 @@
   <ItemGroup>
     <ClInclude Include="..\src\extension.h" />
     <ClInclude Include="..\src\lander.h" />
+    <ClInclude Include="..\src\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Keymap.txt" />
     <Text Include="To Do.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Textures\5672_mars_2k_color.jpg" />
+    <Image Include="..\Textures\5672_mars_2k_normal.jpg" />
+    <Image Include="..\Textures\5672_mars_2k_topo.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

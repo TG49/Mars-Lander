@@ -32,9 +32,23 @@
     <ClInclude Include="..\src\extension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Keymap.txt" />
     <Text Include="To Do.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Textures\5672_mars_2k_color.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\Textures\5672_mars_2k_normal.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\Textures\5672_mars_2k_topo.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -145,7 +145,6 @@ enum parachute_status_t { NOT_DEPLOYED = 0, DEPLOYED = 1, LOST = 2 };
 
 // GL windows and objects
 int main_window, closeup_window, orbital_window, instrument_window, view_width, view_height, win_width, win_height;
-GLUquadricObj *quadObj;
 GLuint terrain_texture;
 short throttle_control;
 track_t track;
@@ -185,6 +184,11 @@ bool Initialised;
 Eigen::Quaterniond rotQuat;
 bool alignToVelocity;
 bool alignToPosition;
+
+//Texture
+GLUquadric* qobj;
+GLuint planet;
+GLuint surface;
 
 
 // Orbital and closeup view parameters
@@ -273,5 +277,6 @@ void closeup_mouse_button (int button, int state, int x, int y);
 void closeup_mouse_motion (int x, int y);
 void glut_special (int key, int x, int y);
 void glut_key (unsigned char k, int x, int y);
+bool loadTextures(GLuint& planet, GLuint& surface);
 
 #endif
