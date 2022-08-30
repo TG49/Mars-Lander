@@ -189,7 +189,7 @@ bool alignToPosition;
 GLUquadric* qobj;
 GLuint planet;
 GLuint surface;
-
+GLuint lowResMars;
 
 // Orbital and closeup view parameters
 double orbital_zoom, save_orbital_zoom, closeup_offset, closeup_xr, closeup_yr, terrain_angle;
@@ -239,7 +239,7 @@ quat_t track_quats (const double p1x, const double p1y, const double p2x, const 
 void microsecond_time (unsigned long long &t);
 void fghCircleTable (double **sint, double **cost, const int n);
 void glutOpenHemisphere (GLdouble radius, GLint slices, GLint stacks);
-void glutMottledSphere (GLdouble radius, GLint slices, GLint stacks);
+void drawSphere (GLdouble radius, GLint slices, GLint stacks, GLuint texture);
 void glutCone (GLdouble base, GLdouble height, GLint slices, GLint stacks, bool closed);
 void enable_lights (void);
 void setup_lights (void);
@@ -277,6 +277,6 @@ void closeup_mouse_button (int button, int state, int x, int y);
 void closeup_mouse_motion (int x, int y);
 void glut_special (int key, int x, int y);
 void glut_key (unsigned char k, int x, int y);
-bool loadTextures(GLuint& planet, GLuint& surface);
-
+bool loadCloseUpTextures(GLuint& planet, GLuint& surface);
+void loadOrbitalTextures(GLuint& orbital);
 #endif

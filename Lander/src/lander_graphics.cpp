@@ -354,78 +354,25 @@ void glutOpenHemisphere (GLdouble radius, GLint slices, GLint stacks)
   free(sint2); free(cost2);
 }
 
-void glutMottledSphere (GLdouble radius, GLint slices, GLint stacks)
+void drawSphere (GLdouble radius, GLint slices, GLint stacks, GLuint texture)
   // Modified from freeglut's glutSolidSphere, we use this to draw a mottled sphere by modulating
   // the vertex colours.
 {
-    int i, j;
-    unsigned short rtmp = 0;
-    double z0, z1, r0, r1, *sint1, *cost1, *sint2, *cost2;
-    double *rnd1, *rnd2, *new_r, *old_r, *tmp;
-    double mottle = 0.2;
+    
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    fghCircleTable(&sint1, &cost1, -slices);
-    fghCircleTable(&sint2, &cost2, stacks*2);
-    rnd1 = (double*) calloc(sizeof(double), slices+1);
-    rnd2 = (double*) calloc(sizeof(double), slices+1);
-    z0 = 1.0; z1 = cost2[(stacks>0)?1:0];
-    r0 = 0.0; r1 = sint2[(stacks>0)?1:0];
+    GLUquadric* quad = gluNewQuadric();
+    gluQuadricTexture(quad, GL_TRUE);
+    gluSphere(quad, radius, slices, stacks);
+    glDisable(GL_TEXTURE_2D);
+    gluDeleteQuadric(quad);
 
-    // Top cap
-    glBegin(GL_TRIANGLE_FAN);
-    glNormal3d(0,0,1);
-    glColor3f(0.63, 0.33, 0.22);
-    glVertex3d(0,0,radius);
-    new_r = rnd1;
-    for (j=slices; j>=0; j--) {
-      glNormal3d(cost1[j]*r1, sint1[j]*r1, z1);
-      if (j) {
-	new_r[j] = (1.0-mottle) + mottle*randtab[rtmp];
-	rtmp = (rtmp+1)%N_RAND;
-      } else new_r[j] = new_r[slices];
-      glColor3f(new_r[j]*0.63, new_r[j]*0.33, new_r[j]*0.22);
-      glVertex3d(cost1[j]*r1*radius, sint1[j]*r1*radius, z1*radius);
-    }
-    glEnd();
-
-    // Middle stacks
-    old_r = rnd1; new_r = rnd2;
-    for (i=1; i<stacks-1; i++) {
-      z0 = z1; z1 = cost2[i+1];
-      r0 = r1; r1 = sint2[i+1];
-      glBegin(GL_QUAD_STRIP);
-      for (j=0; j<=slices; j++) {
-	glNormal3d(cost1[j]*r1, sint1[j]*r1, z1);
-	if (j != slices) {
-	  new_r[j] = (1.0-mottle) + mottle*randtab[rtmp];
-	  rtmp = (rtmp+1)%N_RAND;
-	} else new_r[j] = new_r[0];
-	glColor3f(new_r[j]*0.63, new_r[j]*0.33, new_r[j]*0.22);
-	glVertex3d(cost1[j]*r1*radius, sint1[j]*r1*radius, z1*radius);
-	glNormal3d(cost1[j]*r0, sint1[j]*r0, z0);
-	glColor3f(old_r[j]*0.63, old_r[j]*0.33, old_r[j]*0.22);
-	glVertex3d(cost1[j]*r0*radius, sint1[j]*r0*radius, z0*radius);
-      }
-      tmp = old_r; old_r = new_r; new_r = tmp;
-      glEnd();
-    }
-
-    // Bottom cap
-    z0 = z1; r0 = r1;
-    glBegin(GL_TRIANGLE_FAN);
-    glNormal3d(0,0,-1);
-    glColor3f(0.63, 0.33, 0.22);
-    glVertex3d(0,0,-radius);
-    for (j=0; j<=slices; j++) {
-      glNormal3d(cost1[j]*r0, sint1[j]*r0, z0);
-      glColor3f(old_r[j]*0.63, old_r[j]*0.33, old_r[j]*0.22);
-      glVertex3d(cost1[j]*r0*radius, sint1[j]*r0*radius, z0*radius);
-    }
-    glEnd();
-
-    free(rnd1); free(rnd2);
-    free(sint1); free(cost1);
-    free(sint2); free(cost2);
 }
 
 void glutCone (GLdouble base, GLdouble height, GLint slices, GLint stacks, bool closed)
@@ -919,94 +866,78 @@ void display_help_prompt (void)
   glPopMatrix();
 }
 
-void draw_orbital_window (void)
-  // Draws the orbital view
+void draw_orbital_window(void)
+// Draws the orbital view
 {
-  unsigned short i, j;
-  double m[16], sf;
-  GLint slices, stacks;
-  bool textureShow = true;
+    unsigned short i, j;
+    double m[16], sf;
+    GLint slices, stacks;
 
-  glutSetWindow(orbital_window);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+    glutSetWindow(orbital_window);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-  // Viewing transformation
-  quat_to_matrix(m, orbital_quat);
-  glMultMatrixd(m);
-  if (orbital_zoom > 2.0) { // gradual pan towards the lander when zoomed in
-    sf = 1.0 - exp((2.0-orbital_zoom)/5.0);
-    glTranslated(-sf*position(0), -sf*position(1), -sf*position(2));
-  }
+    // Viewing transformation
+    quat_to_matrix(m, orbital_quat);
+    glMultMatrixd(m);
+    if (orbital_zoom > 2.0) { // gradual pan towards the lander when zoomed in
+        sf = 1.0 - exp((2.0 - orbital_zoom) / 5.0);
+        glTranslated(-sf * position(0), -sf * position(1), -sf * position(2));
+    }
 
-  if (static_lighting) {
-    // Specify light positions here, to fix them in the world coordinate system
-    glLightfv(GL_LIGHT2, GL_POSITION, minus_y);
-    glLightfv(GL_LIGHT3, GL_POSITION, plus_y);
-  }
+    if (static_lighting) {
+        // Specify light positions here, to fix them in the world coordinate system
+        glLightfv(GL_LIGHT2, GL_POSITION, minus_y);
+        glLightfv(GL_LIGHT3, GL_POSITION, plus_y);
+    }
 
-  // Draw planet
- 
+    // Draw planet
+    glColor3f(0.63, 0.33, 0.22);
+    glLineWidth(1.0);
+    glEnable(GL_LIGHTING);
+    glPushMatrix();
+    glRotated(360.0 * simulation_time / MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
+    if (orbital_zoom > 1.0) {
+        slices = (int)(16 * orbital_zoom); if (slices > 160) slices = 160;
+        stacks = (int)(10 * orbital_zoom); if (stacks > 100) stacks = 100;
+    }
+    else {
+        slices = 100; stacks = 50;
+    }
 
-  glPushMatrix();
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-  glBindTexture(GL_TEXTURE_2D, planet);
-  cout << planet << endl;
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  qobj = gluNewQuadric();
-  gluQuadricTexture(qobj, GL_TRUE);
-  gluSphere(qobj, MARS_RADIUS, 20, 20);
-  gluDeleteQuadric(qobj);
-  glDisable(GL_TEXTURE_2D);
-
-  glFlush();
-  //glBindTexture(GL_TEXTURE_2D, 0);
-  glFlush();
-  glPopMatrix();
-  glDisable(GL_TEXTURE_2D);
+    //Draw Mars
+    drawSphere((1.0 - 0.01 / orbital_zoom) * MARS_RADIUS, slices, stacks, lowResMars);
 
 
-  /*glColor3f(0.31, 0.16, 0.11);
-  gluQuadricDrawStyle(quadObj, GLU_LINE);
-  gluSphere(quadObj, MARS_RADIUS, slices, stacks);
-  gluDeleteQuadric(quadObj);*/
+    // Draw previous lander positions in cyan that fades with time
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glLineWidth(1.0);
+    glBegin(GL_LINE_STRIP);
+    glColor3f(0.0, 1.0, 1.0);
+    glVertex3d(position(0), position(1), position(2));
+    j = (track.p + N_TRACK - 1) % N_TRACK;
+    for (i = 0; i < track.n; i++) {
+        glColor4f(0.0, 0.75 * (N_TRACK - i) / N_TRACK, 0.75 * (N_TRACK - i) / N_TRACK, 1.0 * (N_TRACK - i) / N_TRACK);
+        glVertex3d(track.pos[j](0), track.pos[j](1), track.pos[j](2));
+        j = (j + N_TRACK - 1) % N_TRACK;
+    }
+    glEnd();
+    glDisable(GL_BLEND);
 
-  // Draw previous lander positions in cyan that fades with time
+    // Draw lander as a cyan dot
+    glColor3f(0.0, 1.0, 1.0);
+    glPointSize(3.0);
+    glBegin(GL_POINTS);
+    glVertex3d(position(0), position(1), position(2));
+    glEnd();
+    glEnable(GL_LIGHTING);
 
-  glDisable(GL_LIGHTING);
-  glEnable(GL_BLEND);
-  glLineWidth(1.0);
-  glBegin(GL_LINE_STRIP);
-  //glColor3f(1.0, 1.0, 1.0);
-  glVertex3d(position(0), position(1), position(2));
-  j = (track.p+N_TRACK-1)%N_TRACK;
-  for (i=0; i<track.n; i++) {
-    //glColor4f(0.0, 0.75*(N_TRACK-i)/N_TRACK, 0.75*(N_TRACK-i)/N_TRACK, 1.0*(N_TRACK-i)/N_TRACK);
-    glVertex3d(track.pos[j](0), track.pos[j](1), track.pos[j](2)); 
-    j = (j+N_TRACK-1)%N_TRACK;
-  }
-  glEnd();
-  glDisable(GL_BLEND);
+    // Help information
+    if (help) display_help_text();
 
- // Draw lander as a cyan dot
- // glColor3f(0.0, 0.0, 1.0);
-  glPointSize(3.0);
-  glBegin(GL_POINTS);
-  glVertex3d(position(0), position(1), position(2));
-  glEnd();
-  glEnable(GL_LIGHTING);
-
-  // Help information
-  if (help) display_help_text();
-
-  glutSwapBuffers();
+    glutSwapBuffers();
 }
 
 void draw_parachute_quad (double d)
@@ -1270,7 +1201,8 @@ void draw_closeup_window (void)
 
     // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
     // nearby, to get the fog calculations correct in all OpenGL implementations.
-    glBindTexture(GL_TEXTURE_2D, planet);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBindTexture(GL_TEXTURE_2D, surface);
     cout << planet << endl;
     if (do_texture) glEnable(GL_TEXTURE_2D);
     glNormal3d(0.0, 1.0, 0.0);
@@ -1375,7 +1307,7 @@ void draw_closeup_window (void)
       glTranslated(0.0, -MARS_RADIUS, 0.0);
       glMultMatrixd(m2); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      glutMottledSphere(MARS_RADIUS * (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100);
+      drawSphere(MARS_RADIUS * (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100, planet);
 
     } else {
 
@@ -1383,7 +1315,7 @@ void draw_closeup_window (void)
       glTranslated(0.0, -(MARS_RADIUS + altitude), 0.0);
       glMultMatrixd(m2); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      glutMottledSphere(MARS_RADIUS, 160, 100);
+      drawSphere(MARS_RADIUS, 160, 100, planet);
 
     }
 
@@ -2161,40 +2093,10 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
-bool loadTextures(GLuint &planet, GLuint &surface) {
-
-    /*unsigned char* tex_image;
-    unsigned long x;
-    GLsizei ts;
-    bool texture_ok;
-
-    ts = TERRAIN_TEXTURE_SIZE;
-    texture_ok = false;
-    tex_image = (unsigned char*)calloc(sizeof(unsigned char), TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE);
-    for (x = 0; x < TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE; x++) tex_image[x] = 192 + (unsigned char)(63.0 * rand() / RAND_MAX);
-    glGenTextures(1, &terrain_texture);
-    glBindTexture(GL_TEXTURE_2D, terrain_texture);
-    while (!texture_ok && (ts >= 256)) { // try progressively smaller texture maps, give up below 256x256
-        glGetError(); // clear error
-        if (!gluBuild2DMipmaps(GL_TEXTURE_2D, GL_LUMINANCE, ts, ts, GL_LUMINANCE, GL_UNSIGNED_BYTE, tex_image) && (glGetError() == GL_NO_ERROR)) texture_ok = true;
-        else ts /= 2;
-    }
-    free(tex_image);
-    if (texture_ok) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        return true;
-    }
-    else return false;*/
-    
-    //Store texture in unsigned int array
+bool loadCloseUpTextures(GLuint &planet, GLuint &surface) {
 
     int width, height, nrChannels;
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    unsigned char* data = stbi_load("mars_1k_color.jpg", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("5672_mars_12k_color.jpg", &width, &height, &nrChannels, 0);
 
     GLuint* textures = new GLuint[2];
     glGenTextures(2, textures);
@@ -2211,6 +2113,9 @@ bool loadTextures(GLuint &planet, GLuint &surface) {
         std::cout << "fail";
 
     planet = textures[1];
+    stbi_image_free(data);
+
+
     unsigned char* tex_image;
     unsigned long x;
     GLsizei ts;
@@ -2244,6 +2149,26 @@ bool loadTextures(GLuint &planet, GLuint &surface) {
     }
    
 
+}
+
+void loadOrbitalTextures(GLuint& orbital) {
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("mars_1k_color.jpg", &width, &height, &nrChannels, 0);
+
+    glGenTextures(2, &orbital);
+    glBindTexture(GL_TEXTURE_2D, orbital);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    //unsigned char data[] = { 255, 0, 0, 255 };
+    if (data)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    else
+        std::cout << "fail";
+
+    stbi_image_free(data);
 }
 
 int main (int argc, char* argv[])
@@ -2292,7 +2217,7 @@ int main (int argc, char* argv[])
   glutMotionFunc(closeup_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  texture_available = loadTextures(planet, surface);
+  texture_available = loadCloseUpTextures(planet, surface);
   if (!texture_available) do_texture = false;
   closeup_offset = 50.0;
   closeup_xr = 10.0;
@@ -2305,20 +2230,22 @@ int main (int argc, char* argv[])
   setup_lights();
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
-  glEnable(GL_CULL_FACE); // since the only polygons in this view define a solid sphere
+  glEnable(GL_CULL_FACE); // we only need back faces for the parachute
   glDisable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_NORMALIZE);
   glDepthFunc(GL_LEQUAL);
   glShadeModel(GL_SMOOTH);
   glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); // we need two-sided lighting for the parachute
   glEnable(GL_COLOR_MATERIAL);
+  glFogi(GL_FOG_MODE, GL_EXP);
   glutDisplayFunc(draw_orbital_window);
   glutMouseFunc(orbital_mouse_button);
   glutMotionFunc(orbital_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  //quadObj = gluNewQuadric();
+  loadOrbitalTextures(lowResMars);
   orbital_quat.v(0) = 0.53; orbital_quat.v(1) = -0.21;
   orbital_quat.v(2) = 0.047; orbital_quat.s = 0.82;
   normalize_quat(orbital_quat);
