@@ -76,6 +76,7 @@
 
 #define DECLARE_GLOBAL_VARIABLES
 #include "lander.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -910,6 +911,7 @@ void draw_orbital_window(void)
     drawSphere((1.0 - 0.01 / orbital_zoom) * MARS_RADIUS, slices, stacks, lowResMars);
 
 
+    glPopMatrix();
     // Draw previous lander positions in cyan that fades with time
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
@@ -982,36 +984,6 @@ void draw_parachute (double d)
   glEnable(GL_CULL_FACE);
 }
 
-bool generate_terrain_texture (void)
-  // Generates random texture map for surface terrain, with mipmap to avoid aliasing at the horizon
-{
-  unsigned char *tex_image;
-  unsigned long x;
-  GLsizei ts;
-  bool texture_ok;
-
-  ts = TERRAIN_TEXTURE_SIZE;
-  texture_ok = false;
-  tex_image = (unsigned char*) calloc(sizeof(unsigned char), TERRAIN_TEXTURE_SIZE*TERRAIN_TEXTURE_SIZE);
-  for (x=0; x<TERRAIN_TEXTURE_SIZE*TERRAIN_TEXTURE_SIZE; x++) tex_image[x] = 192 + (unsigned char) (63.0*rand()/RAND_MAX);
-  glGenTextures(1, &terrain_texture);
-  glBindTexture(GL_TEXTURE_2D, terrain_texture);
-  while (!texture_ok && (ts >= 256)) { // try progressively smaller texture maps, give up below 256x256
-    glGetError(); // clear error
-    if (!gluBuild2DMipmaps(GL_TEXTURE_2D, GL_LUMINANCE, ts, ts, GL_LUMINANCE, GL_UNSIGNED_BYTE, tex_image) && (glGetError() == GL_NO_ERROR)) texture_ok = true;
-    else ts /= 2;
-  }
-  free(tex_image);
-  if (texture_ok) {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    return true;
-  } else return false;
-}
-
 void update_closeup_coords (void)
   // Updates the close-up view's coordinate frame, based on the lander's current position and velocity.
   // This needs to be called every time step, even if the view is not being rendered, since any-angle
@@ -1071,6 +1043,53 @@ void update_closeup_coords (void)
     closeup_coords.right = t;
     closeup_coords.initialized = true;
   }
+}
+
+void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d>& vertices, 
+    std::vector<int>& indices, std::vector<Eigen::Vector2d>& texCoords, std::vector<double>& surfaceHeight) {
+    double ground_plane_size = 5.0 * TRANSITION_ALTITUDE;
+
+    float x = ground_plane_size;
+    float y = ground_plane_size;
+
+    float m = meshResolution;
+    float n = meshResolution;
+
+    for (float k = 0; k < m; k++) {
+        for (float i = 0; i < n; i++) {
+            Eigen::Vector2d vertex(ground_plane_size * (-1 + 2 * i / (n - 1)), ground_plane_size * (1 - 2 * k / (m - 1)));
+            vertices.push_back(vertex);
+
+            surfaceHeight.push_back(200 * rand() / RAND_MAX);
+
+            Eigen::Vector2d textureCoords(numTextureRepeats * i / (n - 1), numTextureRepeats * (1 - k / (m - 1)));
+            texCoords.push_back(textureCoords);
+        }
+    }
+
+    for (float k = 0; k < m - 1; k++) {
+        for (float i = 0; i < n - 1; i++) {
+            indices.push_back(k * n + i);
+            indices.push_back(k * n + i + 1);
+            indices.push_back((k + 1) * n + i + 1);
+            indices.push_back((k + 1) * n + i);
+        }
+    }
+
+
+    ofstream file;
+    file.open("vertices.txt");
+    file << "Indices: " << indices.size() << endl;
+    file << "Vertices: " << vertices.size() << endl;
+    for (int i = 0; i < indices.size(); i++) {
+        int toPlot = indices[i];
+       // file << i << ": " <<indices[i] << endl;
+         file << "index " << toPlot << ": " << vertices[toPlot][0] / ground_plane_size << ", " << vertices[toPlot][1] / ground_plane_size << endl;
+        //file << toPlot << ": " << texCoords[toPlot][0] / numTextureRepeats << ", " << texCoords[toPlot][1] / numTextureRepeats << endl;
+    }
+
+    file.close();
+
 }
 
 void draw_closeup_window (void)
@@ -1195,39 +1214,33 @@ void draw_closeup_window (void)
   }
 
   // Surface colour
-  glColor3f(0.63, 0.33, 0.22);
+  //glColor3f(0.63, 0.33, 0.22);
 
   if (altitude < transition_altitude) {
 
     // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
     // nearby, to get the fog calculations correct in all OpenGL implementations.
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glBindTexture(GL_TEXTURE_2D, surface);
-    cout << planet << endl;
     if (do_texture) glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0, 1.0, 1.0);
     glNormal3d(0.0, 1.0, 0.0);
     glPushMatrix();
     glRotated(terrain_angle, 0.0, 1.0, 0.0);
     glBegin(GL_QUADS);
-    glTexCoord2f(1.0 + terrain_offset_x, 1.0 + terrain_offset_y); glVertex3d(ground_plane_size, -altitude, ground_plane_size);      
-    glTexCoord2f(1.0 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(ground_plane_size, -altitude, 0.0);
-    glTexCoord2f(0.5 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(0.0, -altitude, 0.0);      
-    glTexCoord2f(0.5 + terrain_offset_x, 1.0 + terrain_offset_y); glVertex3d(0.0, -altitude, ground_plane_size);
-    glTexCoord2f(0.5 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(0.0, -altitude, 0.0);      
-    glTexCoord2f(1.0 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(ground_plane_size, -altitude, 0.0);
-    glTexCoord2f(1.0 + terrain_offset_x, 0.0 + terrain_offset_y); glVertex3d(ground_plane_size, -altitude, -ground_plane_size);
-    glTexCoord2f(0.5 + terrain_offset_x, 0.0 + terrain_offset_y); glVertex3d(0.0, -altitude, -ground_plane_size);
-    glTexCoord2f(0.5 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(0.0, -altitude, 0.0);      
-    glTexCoord2f(0.5 + terrain_offset_x, 0.0 + terrain_offset_y); glVertex3d(0.0, -altitude, -ground_plane_size);
-    glTexCoord2f(0.0 + terrain_offset_x, 0.0 + terrain_offset_y); glVertex3d(-ground_plane_size, -altitude, -ground_plane_size);
-    glTexCoord2f(0.0 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(-ground_plane_size, -altitude, 0.0);
-    glTexCoord2f(0.5 + terrain_offset_x, 1.0 + terrain_offset_y); glVertex3d(0.0, -altitude, ground_plane_size);
-    glTexCoord2f(0.5 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(0.0, -altitude, 0.0);      
-    glTexCoord2f(0.0 + terrain_offset_x, 0.5 + terrain_offset_y); glVertex3d(-ground_plane_size, -altitude, 0.0);
-    glTexCoord2f(0.0 + terrain_offset_x, 1.0 + terrain_offset_y); glVertex3d(-ground_plane_size, -altitude, ground_plane_size);
+
+    cout << randHeight.size() << endl;
+    for (int i = 0; i < indices.size(); i++) {
+        int toPlot = indices[i];
+        glTexCoord2d(texCoords[toPlot][0], texCoords[toPlot][1]);
+        double height = -altitude + randHeight[toPlot];
+        if (height < 0) glVertex3d(vertices[toPlot][0], height, vertices[toPlot][1]);
+        else glVertex3d(vertices[toPlot][0], -height, vertices[toPlot][1]);
+    }
+
     glEnd();
     glPopMatrix();
-    glDisable(GL_TEXTURE_2D);
+   glDisable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
 
     if (!do_texture) { // draw lines on the ground plane at constant x (to show ground speed)
@@ -2093,7 +2106,7 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
-bool loadCloseUpTextures(GLuint &planet, GLuint &surface) {
+void loadCloseUpTextures(GLuint& planet, GLuint& surface) {
 
     int width, height, nrChannels;
     unsigned char* data = stbi_load("5672_mars_12k_color.jpg", &width, &height, &nrChannels, 0);
@@ -2115,8 +2128,29 @@ bool loadCloseUpTextures(GLuint &planet, GLuint &surface) {
     planet = textures[1];
     stbi_image_free(data);
 
+    unsigned char* data2 = stbi_load("surface.jpg", &width, &height, &nrChannels, 0);
 
-    unsigned char* tex_image;
+    glGenTextures(2, textures);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    //unsigned char data[] = { 255, 0, 0, 255 };
+    if (data2)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
+    else
+        std::cout << "fail";
+
+    surface = textures[0];
+    stbi_image_free(data2);
+
+    delete[] textures;
+
+
+
+    /*unsigned char* tex_image;
     unsigned long x;
     GLsizei ts;
     bool texture_ok;
@@ -2146,7 +2180,7 @@ bool loadCloseUpTextures(GLuint &planet, GLuint &surface) {
         surface = textures[0];
         delete textures;
         return false;
-    }
+    }*/
    
 
 }
@@ -2217,7 +2251,8 @@ int main (int argc, char* argv[])
   glutMotionFunc(closeup_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  texture_available = loadCloseUpTextures(planet, surface);
+  loadCloseUpTextures(planet, surface);
+  texture_available = true;
   if (!texture_available) do_texture = false;
   closeup_offset = 50.0;
   closeup_xr = 10.0;
@@ -2261,10 +2296,12 @@ int main (int argc, char* argv[])
   // Generate the random number table
   srand(0);
   for (i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
+  buildPlanarMesh(50, 100, vertices, indices, texCoords, randHeight);
 
   // Initialize the simulation state
   reset_simulation();
   microsecond_time(time_program_started);
+
 
   glutMainLoop();
 }

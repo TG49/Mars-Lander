@@ -4,3 +4,10 @@
 2. Fix Attitude Stabilisation function (point position normal)
 3. Add texture to mars
 4. Add orbital prediction path
+
+
+
+
+
+
+For noisy surface find the position of the lander relative to the ground. Set this height as a variable and use the -altitude + height idea to define when landed. 

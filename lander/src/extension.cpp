@@ -1,6 +1,7 @@
 #include "extension.h" //Do not need to include lander.h as it is included in extension.h
 #include <vector>
 
+
 Eigen::Vector3d updateGravitationVector() {
     double distance = position.squaredNorm();
     return (-1 * GRAVITY * MARS_MASS / distance) * position.normalized();

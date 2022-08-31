@@ -4,6 +4,7 @@
 #include <Eigen/dense>
 #include <vector>
 
+
 //Function Declarations for lander.cpp
 Eigen::Vector3d updateAccelerationVector(double& mass);
 Eigen::Vector3d updateGravitationVector();
