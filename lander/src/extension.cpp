@@ -178,7 +178,5 @@ void velocityAlign(bool alignToVelocity){
             return;
         }
 
-
-
     }
 }

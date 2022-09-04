@@ -63,6 +63,8 @@
 #define TRACK_DISTANCE_DELTA 100000.0
 #define TRACK_ANGLE_DELTA 0.999
 #define HEAT_FLUX_GLOW_THRESHOLD 1000000.0
+#define MAX_SURFACE_ALTITUDE 2500.0
+#define MIN_SURFACE_ALTITUDE -400.0
 
 // Mars constants
 #define MARS_RADIUS 3386000.0 // (m)
@@ -91,6 +93,97 @@
 #define MAX_IMPACT_DESCENT_RATE 1.0 // (m/s)
 
 using namespace std;
+
+class textureObject {
+public:
+	textureObject() { pixels = NULL; pixelDataLoaded = false; };
+	~textureObject() { 
+		if (pixelDataLoaded) {
+			delete[] pixels;
+		}
+	};
+
+
+	void setTextureObject(GLuint indexIn, int heightIn, int widthIn, int channelsIn) {
+		//If loading pixel data must do so when the texture object is bound
+		index = indexIn;
+		height = heightIn;
+		width = widthIn;
+		nrChannels = channelsIn;
+	};
+
+	void getHeightValue(double u, double v, GLfloat &value) {
+		if (pixelDataLoaded)
+		{
+			cout << "U: " << u << " V: " << v << endl;
+			int column = int(u * width);
+			int row = int(v * (height));
+
+			while (row > height) {
+				row -= height;
+			}
+			while (row < 0) {
+				row += height;
+			}
+			while (column < 0) {
+				column += width;
+			}
+			while (column > width) {
+				column -= width;
+			}
+
+			cout << "Row: " << row << ", Column: " << column << endl;
+			int index = row * elementsPerLine + column * nrChannels;
+			cout << "Index: " << index << endl;
+			cout << "Pixels: " << height * width * nrChannels << endl;
+
+			value = (GLfloat)pixels[index];
+
+			/*for (int i = 0; i < pixel.size(); i++)
+			{
+				cout << "Raw data: " << pixels[index + i] << endl;
+				//pixel.at(i) = double(pixels[index + i]);
+			}*/
+		}
+		else { cerr << "Failed ot load pixel value as no pixel data loaded"; }
+		
+	}
+
+	void deletePixelData() {
+		if (pixelDataLoaded)
+		{
+			delete[] pixels;
+			pixelDataLoaded = false;
+		}
+	}
+
+	void loadPixelData() {
+		if (!pixelDataLoaded) {
+			pixels = new GLubyte[height * width * nrChannels];
+			elementsPerLine = width * nrChannels;
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
+			pixelDataLoaded = true;
+		}
+	};
+
+
+	GLuint getIndex() { return index; };
+	int getHeight() { return height; };
+	int getwidth() { return width; };
+	int getChannels() { return nrChannels; };
+
+private:
+	GLuint index;
+	int height;
+	int width;
+	int nrChannels;
+	bool pixelDataLoaded;
+	int elementsPerLine;
+	GLubyte* pixels;
+
+
+};
+
 
 // Data type for recording lander's previous positions
 struct track_t {
@@ -160,10 +253,13 @@ bool alignToVelocity;
 bool alignToPosition;
 
 //Texture
+
+textureObject planet;
+textureObject surface;
+textureObject lowResMars;
+textureObject marsHeight;
+
 GLUquadric* qobj;
-GLuint planet;
-GLuint surface;
-GLuint lowResMars;
 
 //Planar Mesh
 std::vector<Eigen::Vector2d> vertices; //2D as the y-axis changes with time
@@ -259,8 +355,9 @@ void closeup_mouse_button (int button, int state, int x, int y);
 void closeup_mouse_motion (int x, int y);
 void glut_special (int key, int x, int y);
 void glut_key (unsigned char k, int x, int y);
-void loadCloseUpTextures(GLuint& planet, GLuint& surface);
-void loadOrbitalTextures(GLuint& orbital);
+void loadCloseUpTextures(textureObject& planet, textureObject& surface, textureObject& heightMap);
+void loadOrbitalTextures(textureObject& orbital);
 void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d> &vertices,
-	std::vector<int> &indices, std::vector<Eigen::Vector2d> &texCoords, std::vector<double>& surfaceHeight);
+	std::vector<int> &indices, std::vector<Eigen::Vector2d> &texCoords);
+void getPositionalUVCoordinates(double &u, double &v);
 #endif

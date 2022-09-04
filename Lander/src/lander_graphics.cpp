@@ -1218,11 +1218,16 @@ void draw_closeup_window (void)
   double u;
   double v;
   getPositionalUVCoordinates(u, v);
-  cout << "u: " << u << ", v: " << v << endl;
-  std::vector<GLuint> pixelHeight;
-  marsHeight.getIndividualPixelValue(u, v, pixelHeight);
-  double height = pixelHeight[0];
-  cout << "Height: " << pixelHeight[0] << endl;
+  GLfloat height;
+  static GLfloat maxHeight = 0;
+  static GLfloat minHeight = 0;
+
+  marsHeight.getHeightValue(u, v, height);
+
+  float normalisedHeight =(((MAX_SURFACE_ALTITUDE - MIN_SURFACE_ALTITUDE)/2) + MIN_SURFACE_ALTITUDE) * (height / 255.0);
+  cout << "Height: " << normalisedHeight << endl;
+
+
 
 
 
@@ -1246,14 +1251,14 @@ void draw_closeup_window (void)
         double uL = u + (vertices[toPlot][0] / circumference);
         double vL = v + (vertices[toPlot][0] / circumference);
         glTexCoord2d(texCoords[toPlot][0], texCoords[toPlot][1]);
-        if (pixelHeight[0] > 0.5) {
-            height = 5000.0 * (pixelHeight[0] - 0.5);
+        if (height > 0.5) {
+            //height = 5000.0 * (pixelHeight[0] - 0.5);
         }
         else { 
-            height = -5000.0 * (pixelHeight[0] - 0.5);
+           // height = -5000.0 * (pixelHeight[0] - 0.5);
         }
 
-        glVertex3d(vertices[toPlot][0], -altitude + height, vertices[toPlot][1]);
+        glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]);
     }
 
     glEnd();
