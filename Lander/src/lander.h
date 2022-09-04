@@ -96,12 +96,8 @@ using namespace std;
 
 class textureObject {
 public:
-	textureObject() { pixels = NULL; pixelDataLoaded = false; };
-	~textureObject() { 
-		if (pixelDataLoaded) {
-			delete[] pixels;
-		}
-	};
+	textureObject() { };
+	~textureObject() { };
 
 
 	void setTextureObject(GLuint indexIn, int heightIn, int widthIn, int channelsIn) {
@@ -112,41 +108,81 @@ public:
 		nrChannels = channelsIn;
 	};
 
-	void getHeightValue(double u, double v, GLfloat &value) {
-		if (pixelDataLoaded)
+
+	GLuint getIndex() { return index; };
+	int getHeight() { return height; };
+	int getwidth() { return width; };
+	int getChannels() { return nrChannels; };
+
+protected:
+	GLuint index;
+	int height;
+	int width;
+	int nrChannels;
+
+};
+
+
+
+class heightMapTexture : private textureObject {
+public:	
+	void setTextureObject(GLuint indexIn, int heightIn, int widthIn, int channelsIn) {
+		//If loading pixel data must do so when the texture object is bound
+		index = indexIn;
+		height = heightIn;
+		width = widthIn;
+		nrChannels = channelsIn;
+
+		buildHeightVector();
+	}
+	//Overload the constructor
+	heightMapTexture() { pixels = NULL; pixelDataLoaded = false; };
+
+	GLfloat getHeightValue(double u, double v) { return HeightValue(u, v); }
+
+private:
+	void buildHeightVector() {
+		loadPixelData();
+		for (int i = 0; i < height * width * nrChannels; i++)
 		{
-			cout << "U: " << u << " V: " << v << endl;
-			int column = int(u * width);
-			int row = int(v * (height));
-
-			while (row > height) {
-				row -= height;
-			}
-			while (row < 0) {
-				row += height;
-			}
-			while (column < 0) {
-				column += width;
-			}
-			while (column > width) {
-				column -= width;
-			}
-
-			cout << "Row: " << row << ", Column: " << column << endl;
-			int index = row * elementsPerLine + column * nrChannels;
-			cout << "Index: " << index << endl;
-			cout << "Pixels: " << height * width * nrChannels << endl;
-
-			value = (GLfloat)pixels[index];
-
-			/*for (int i = 0; i < pixel.size(); i++)
-			{
-				cout << "Raw data: " << pixels[index + i] << endl;
-				//pixel.at(i) = double(pixels[index + i]);
-			}*/
+			heights.push_back((GLfloat)pixels[i]);
 		}
-		else { cerr << "Failed ot load pixel value as no pixel data loaded"; }
-		
+		deletePixelData();
+
+	}
+
+	GLfloat HeightValue(double u, double v) {
+		//cout << "U: " << u << " V: " << v << endl;
+		int column = int(u * width);
+		int row = int(v * height);
+
+		while (row > height) {
+			row -= height;
+		}
+		while (row < 0) {
+			row += height;
+		}
+		while (column < 0) {
+			column += width;
+		}
+		while (column > width) {
+			column -= width;
+		}
+
+		//Required as if accessing north pole heightvertex is out of index
+		if (row == height)
+		{
+			row -= 1;
+		}
+
+		if (row == 0) {
+			row += 1;
+		}
+
+		int index = row * elementsPerLine + column * nrChannels;
+
+		return heights.at(index);
+
 	}
 
 	void deletePixelData() {
@@ -154,6 +190,7 @@ public:
 		{
 			delete[] pixels;
 			pixelDataLoaded = false;
+			pixels = NULL;
 		}
 	}
 
@@ -164,24 +201,13 @@ public:
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
 			pixelDataLoaded = true;
 		}
-	};
+	}
 
-
-	GLuint getIndex() { return index; };
-	int getHeight() { return height; };
-	int getwidth() { return width; };
-	int getChannels() { return nrChannels; };
-
-private:
-	GLuint index;
-	int height;
-	int width;
-	int nrChannels;
+	//Members
+	std::vector<GLfloat> heights;
 	bool pixelDataLoaded;
 	int elementsPerLine;
 	GLubyte* pixels;
-
-
 };
 
 
@@ -235,11 +261,12 @@ bool do_texture = true;
 unsigned long throttle_buffer_length, throttle_buffer_pointer;
 double *throttle_buffer = NULL;
 unsigned long long time_program_started;
+bool simulationInitialized;
 
 // Lander state - the visualization routines use velocity_from_positions, so not sensitive to 
 // any errors in the velocity update in numerical_dynamics
-Eigen::Vector3d position, orientation, velocity, velocity_from_positions, last_position;
-double climb_speed, ground_speed, altitude, throttle, fuel;
+Eigen::Vector3d position, orientation, velocity, velocity_from_positions, last_position, positionOnSurface;
+double climb_speed, ground_speed, altitude, throttle, fuel, distanceToTerrain;
 bool autopilot_enabled, parachute_lost;
 parachute_status_t parachute_status;
 int stabilized_attitude_angle;
@@ -251,13 +278,14 @@ bool Initialised;
 Eigen::Quaterniond rotQuat;
 bool alignToVelocity;
 bool alignToPosition;
+bool startOnSurface;
 
 //Texture
 
 textureObject planet;
 textureObject surface;
 textureObject lowResMars;
-textureObject marsHeight;
+heightMapTexture marsHeight;
 
 GLUquadric* qobj;
 
@@ -294,6 +322,7 @@ extern double angularPitchVelocity;
 extern double angularYawVelocity;
 extern bool alignToVelocity;
 extern bool alignToPosition;
+extern bool startOnSurface;
 
 #endif
 
@@ -355,7 +384,7 @@ void closeup_mouse_button (int button, int state, int x, int y);
 void closeup_mouse_motion (int x, int y);
 void glut_special (int key, int x, int y);
 void glut_key (unsigned char k, int x, int y);
-void loadCloseUpTextures(textureObject& planet, textureObject& surface, textureObject& heightMap);
+void loadCloseUpTextures(textureObject& planet, textureObject& surface, heightMapTexture& heightMap);
 void loadOrbitalTextures(textureObject& orbital);
 void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d> &vertices,
 	std::vector<int> &indices, std::vector<Eigen::Vector2d> &texCoords);

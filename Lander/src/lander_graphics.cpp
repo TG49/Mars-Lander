@@ -633,7 +633,13 @@ void draw_instrument_window (void)
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Draw altimeter
-  draw_dial (view_width+GAP-400, INSTRUMENT_HEIGHT/2, altitude, "Altitude", "m");
+  if (altitude < TRANSITION_ALTITUDE)
+  {
+      draw_dial(view_width + GAP - 400, INSTRUMENT_HEIGHT / 2, altitude, "Radar Height", "m");
+  }
+  else {
+      draw_dial(view_width + GAP - 400, INSTRUMENT_HEIGHT / 2, altitude, "Altitude", "m");
+  }
 
   // Draw auto-pilot lamp
   draw_indicator_lamp (view_width+GAP-400, INSTRUMENT_HEIGHT-18, "Auto-pilot off", "Auto-pilot on", autopilot_enabled);
@@ -705,7 +711,7 @@ void draw_instrument_window (void)
   if (!landed) s << ": " << scenario_description[scenario];
   glut_print(view_width+GAP-488, 17, s.str());
   if (landed) {
-    if (altitude < LANDER_SIZE/2.0) glut_print(80, 17, "Lander is below the surface!");
+    if (distanceToTerrain < LANDER_SIZE/2.0) glut_print(80, 17, "Lander is below the surface!");
     else {
       s.str(""); s << "Fuel consumed " << fixed << FUEL_CAPACITY*(1.0-fuel) << " litres";
       glut_print(view_width+GAP-427, 17, s.str());
@@ -1143,7 +1149,7 @@ void draw_closeup_window (void)
       if (f < SMALL_NUM) fog_density = 1000.0; else fog_density = (1.0-f) / (f*horizon);
       view_depth = closeup_offset + horizon;
     } else {
-      f = 1.0 - (altitude / transition_altitude);
+      f = 1.0 - (distanceToTerrain / transition_altitude);
       if (f < SMALL_NUM) fog_density = 1000.0; else fog_density = (1.0-f) / (f*transition_altitude);
       if (do_texture) {
 	fog_density = 0.00005 + 0.5*fog_density;
@@ -1212,26 +1218,14 @@ void draw_closeup_window (void)
     glPopMatrix(); // back to the view's world coordinate system
   }
 
-  // Surface colour
-  //glColor3f(0.63, 0.33, 0.22);
-
-  double u;
-  double v;
-  getPositionalUVCoordinates(u, v);
-  GLfloat height;
-  static GLfloat maxHeight = 0;
-  static GLfloat minHeight = 0;
-
-  marsHeight.getHeightValue(u, v, height);
-
-  float normalisedHeight =(((MAX_SURFACE_ALTITUDE - MIN_SURFACE_ALTITUDE)/2) + MIN_SURFACE_ALTITUDE) * (height / 255.0);
-  cout << "Height: " << normalisedHeight << endl;
-
-
-
-
-
   if (altitude < transition_altitude) {
+
+      static float textureOffsetU = 0;
+      static float textureOffsetV = 0;
+
+      textureOffsetU += 0.0005*(velocity[0] * delta_t);
+      textureOffsetV -= 0.0005 * (velocity[1] * delta_t);
+
 
     // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
     // nearby, to get the fog calculations correct in all OpenGL implementations.
@@ -1244,21 +1238,20 @@ void draw_closeup_window (void)
     glRotated(terrain_angle, 0.0, 1.0, 0.0);
     glBegin(GL_QUADS);
 
+    double u;
+    double v;
+    getPositionalUVCoordinates(u, v);
     double circumference = 2 * M_PI * MARS_RADIUS;
    // cout << randHeight.size() << endl;
     for (int i = 0; i < indices.size(); i++) {
         int toPlot = indices[i];
         double uL = u + (vertices[toPlot][0] / circumference);
         double vL = v + (vertices[toPlot][0] / circumference);
-        glTexCoord2d(texCoords[toPlot][0], texCoords[toPlot][1]);
-        if (height > 0.5) {
-            //height = 5000.0 * (pixelHeight[0] - 0.5);
-        }
-        else { 
-           // height = -5000.0 * (pixelHeight[0] - 0.5);
-        }
+        glTexCoord2d(texCoords[toPlot][0] + textureOffsetU , texCoords[toPlot][1] + textureOffsetV);
+        GLfloat height = marsHeight.getHeightValue(u, v);
+        float normalisedHeight = (((MAX_SURFACE_ALTITUDE - MIN_SURFACE_ALTITUDE) / 2) + MIN_SURFACE_ALTITUDE) * (height / 255.0);
 
-        glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]);
+        glVertex3d(vertices[toPlot][0], -altitude + height, vertices[toPlot][1]); //Draw Plane
     }
 
     glEnd();
@@ -1309,9 +1302,9 @@ void draw_closeup_window (void)
 	cx = 40.0 * (rand_tri[0] - 0.5);
 	cy = 40.0 * (rand_tri[1] - 0.5);
 	glNormal3d(0.0, 1.0, 0.0);
-	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[3]);
-	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[5]);
-	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[7]);
+	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[3]);
+	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[5]);
+	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[7]);
       }
       glEnd();
       if (parachute_status != LOST) {
@@ -1322,9 +1315,9 @@ void draw_closeup_window (void)
 	  cx = 40.0 * (rand_tri[0] - 0.5);
 	  cy = 40.0 * (rand_tri[1] - 0.5);
 	  glNormal3d(0.0, 1.0, 0.0);
-	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[3]);
-	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[5]);
-	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[7]);
+	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[3]);
+	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[5]);
+	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[7]);
 	}
 	glEnd();
       }
@@ -1541,6 +1534,11 @@ void update_visualization (void)
   simulation_time += delta_t;
   altitude = position.norm() - MARS_RADIUS;
 
+  double u, v;
+  getPositionalUVCoordinates(u, v);
+
+  distanceToTerrain = altitude - marsHeight.getHeightValue(u, v);
+
   // Use average of current and previous positions when calculating climb and ground speeds
   av_p = (position + last_position).normalized();
   if (delta_t != 0.0) velocity_from_positions = (position - last_position)/delta_t;
@@ -1549,20 +1547,26 @@ void update_visualization (void)
   ground_speed = (velocity_from_positions - climb_speed*av_p).norm();
 
   // Check to see whether the lander has landed
-  if (altitude < LANDER_SIZE/2.0) {
-    glutIdleFunc(NULL);
-    // Estimate position and time of impact
-    d = position - last_position;
-    a = d.squaredNorm();
-    b = 2.0*last_position.dot(d);
-    c = last_position.squaredNorm() - (MARS_RADIUS + LANDER_SIZE/2.0) * (MARS_RADIUS + LANDER_SIZE/2.0);
-    mu = (-b - sqrt(b*b-4.0*a*c))/(2.0*a);
-    position = last_position + mu*d;
-    simulation_time -= (1.0-mu)*delta_t; 
-    altitude = LANDER_SIZE/2.0;
-    landed = true;
-    if ((fabs(climb_speed) > MAX_IMPACT_DESCENT_RATE) || (fabs(ground_speed) > MAX_IMPACT_GROUND_SPEED)) crashed = true;
-    velocity_from_positions = Eigen::Vector3d(0.0, 0.0, 0.0);
+  if (distanceToTerrain < LANDER_SIZE / 2.0) {
+      if (!startOnSurface) {
+          glutIdleFunc(NULL);
+          // Estimate position and time of impact
+          d = position - last_position;
+          a = d.squaredNorm();
+          b = 2.0 * last_position.dot(d);
+          c = last_position.squaredNorm() - (MARS_RADIUS + LANDER_SIZE / 2.0) * (MARS_RADIUS + LANDER_SIZE / 2.0);
+          mu = (-b - sqrt(b * b - 4.0 * a * c)) / (2.0 * a);
+          position = last_position + mu * d;
+          simulation_time -= (1.0 - mu) * delta_t;
+          distanceToTerrain = LANDER_SIZE / 2.0;
+          landed = true;
+          if ((fabs(climb_speed) > MAX_IMPACT_DESCENT_RATE) || (fabs(ground_speed) > MAX_IMPACT_GROUND_SPEED)) crashed = true;
+          velocity_from_positions = Eigen::Vector3d(0.0, 0.0, 0.0);
+      }
+      else if (startOnSurface && (throttle==0))
+      {
+          position = positionOnSurface;
+      }
   }
 
   // Update throttle and fuel (throttle might have been adjusted by the autopilot)
@@ -1570,7 +1574,7 @@ void update_visualization (void)
   if (throttle > 1.0) throttle = 1.0;
   fuel -= delta_t * (FUEL_RATE_AT_MAX_THRUST*throttle) / FUEL_CAPACITY;
   if (fuel <= 0.0) fuel = 0.0;
-  if (landed || (fuel == 0.0)) throttle = 0.0;
+  if (fuel == 0.0) throttle = 0.0;
   throttle_control = (short)(throttle*THROTTLE_GRANULARITY + 0.5);
 
   // Check to see whether the parachute has vaporized or the tethers have snapped
@@ -1727,11 +1731,38 @@ void reset_simulation (void)
   landed = false;
   crashed = false;
   altitude = position.norm() - MARS_RADIUS;
-  if (altitude < LANDER_SIZE/2.0) {
-    glutIdleFunc(NULL);
-    landed = true;
-    velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
+
+  double u, v;
+  getPositionalUVCoordinates(u, v);
+  distanceToTerrain = altitude - marsHeight.getHeightValue(u, v);
+
+  if (startOnSurface) {
+      position = position.normalized() * MARS_RADIUS;
+      alignToPosition = true;
+      velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
+      velocity_from_positions = velocity;
   }
+
+
+  //Stop Lander from being 'landed' if it starts at the surface
+  if (distanceToTerrain < LANDER_SIZE / 2.0) {
+
+      //cout << "Altitude less than lander/2" << endl;
+     // cout << "Distance to terrain " << distanceToTerrain << endl;
+      //Update position so that the lander gets enough height to sit on the surface
+      position = position * (1 + (abs(distanceToTerrain) + LANDER_SIZE / 2) / position.norm()); //get current position + small amount to get to the surface. Works as position has initial magnitude position.norm();
+      altitude = position.norm() - MARS_RADIUS;
+      distanceToTerrain = altitude - marsHeight.getHeightValue(u, v);
+      velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
+      positionOnSurface = position;
+
+      if (!startOnSurface)
+      {
+          glutIdleFunc(NULL);
+          landed = true;
+      }
+  }
+
 
   // Visualisation routine's record of various speeds and velocities
   velocity_from_positions = velocity;
@@ -1927,14 +1958,23 @@ void glut_special (int key, int x, int y)
 {
   switch(key) {
   case GLUT_KEY_UP: // throttle up
-    if (!autopilot_enabled && !landed && (fuel>0.0)) {
+      //cout << "UP " << endl;
+      //cout << "Throttle: " << endl;
+      if (startOnSurface)
+      {
+          throttle = 1.0;
+          alignToPosition = false;
+      }
+     // cout << "Start On Surface " << startOnSurface << endl;
+    if (!autopilot_enabled && (fuel>0.0) && !startOnSurface) {
       throttle_control++;
       if (throttle_control>THROTTLE_GRANULARITY) throttle_control = THROTTLE_GRANULARITY;
       throttle = (double)throttle_control/THROTTLE_GRANULARITY;
     }
+    startOnSurface = false;
     break;
   case GLUT_KEY_DOWN: // throttle down
-    if (!autopilot_enabled && !landed) {
+    if (!autopilot_enabled) {
       throttle_control--;
       if (throttle_control<0) throttle_control = 0;
       throttle = (double)throttle_control/THROTTLE_GRANULARITY;
@@ -2083,25 +2123,25 @@ void glut_key (unsigned char k, int x, int y)
 
   case 'w': case 'W':
     //w or W - increase pitch angular velocity
-    angularPitchVelocity += 1;
+    angularPitchVelocity += 0.1;
     if (paused) refresh_all_subwindows();
     break;
 
   case 's': case 'S':
     //s or S - decrease pitch angular velocity
-    angularPitchVelocity -= 1;
+    angularPitchVelocity -= 0.1;
     if (paused) refresh_all_subwindows();
     break;
 
   case 'a': case 'A':
     //a or A - increase yaw angular velocity
-    angularYawVelocity -= 1;
+    angularYawVelocity -= 0.1;
     if (paused) refresh_all_subwindows();
     break;
 
   case 'd': case 'D':
     //a or A - increase yaw angular velocity
-    angularYawVelocity += 1;
+    angularYawVelocity += 0.1;
     if (paused) refresh_all_subwindows();
     break;
 
@@ -2129,7 +2169,7 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
-void loadCloseUpTextures(textureObject& planet, textureObject& surface, textureObject &heightMap) {
+void loadCloseUpTextures(textureObject& planet, textureObject& surface, heightMapTexture &heightMap) {
 
     int width, height, nrChannels;
     unsigned char* data = stbi_load("5672_mars_12k_color.jpg", &width, &height, &nrChannels, 0);
@@ -2172,7 +2212,7 @@ void loadCloseUpTextures(textureObject& planet, textureObject& surface, textureO
     surface.setTextureObject(textures[0], height, width, nrChannels);
 
     unsigned char* data3 = stbi_load("5672_marsbump6k.jpg", &width, &height, &nrChannels, 0);
-    cout << "Height: " << height << ", Width: " << width << ", nrChannels: " << nrChannels << endl;
+    //cout << "Height: " << height << ", Width: " << width << ", nrChannels: " << nrChannels << endl;
 
     // glGenTextures(2, textures);
     glBindTexture(GL_TEXTURE_2D, textures[2]);
@@ -2188,11 +2228,10 @@ void loadCloseUpTextures(textureObject& planet, textureObject& surface, textureO
         std::cout << "fail";
 
     stbi_image_free(data3);
-    cout << "Setting Height Texture " << endl;
+    //cout << "Setting Height Texture " << endl;
 
-    cout << "Sizeof array:  " << width*height*nrChannels << endl;
+    //cout << "Sizeof array:  " << width*height*nrChannels << endl;
     heightMap.setTextureObject(textures[2], height, width, nrChannels);
-    heightMap.loadPixelData();
     delete[] textures;
    
 
@@ -2238,8 +2277,7 @@ void getPositionalUVCoordinates(double& u, double& v) {
 int main (int argc, char* argv[])
   // Initializes GLUT windows and lander state, then enters GLUT main loop
 {
-  int i;
-  GLuint* textures = new GLuint[2];
+
 
   // Main GLUT window
   glutInit(&argc, argv);
@@ -2325,10 +2363,11 @@ int main (int argc, char* argv[])
 
   // Generate the random number table
   srand(0);
-  for (i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
+  for (int i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
   buildPlanarMesh(50, 100, vertices, indices, texCoords);
 
   // Initialize the simulation state
+  Initialised = false;
   reset_simulation();
   microsecond_time(time_program_started);
 

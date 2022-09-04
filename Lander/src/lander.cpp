@@ -66,7 +66,6 @@ void initialize_simulation (void)
   // delta_t - the simulation time step
   // boolean state variables - parachute_status, stabilized_attitude, autopilot_enabled
   // scenario_description - a descriptive string for the help screen
-
   scenario_description[0] = "circular orbit";
   scenario_description[1] = "descent from 10km";
   scenario_description[2] = "elliptical orbit, thrust changes orbital plane";
@@ -77,6 +76,8 @@ void initialize_simulation (void)
   scenario_description[7] = "";
   scenario_description[8] = "";
   scenario_description[9] = "";
+
+  startOnSurface = false;
 
   switch (scenario) {
 
@@ -118,13 +119,14 @@ void initialize_simulation (void)
 
   case 3:
     // polar surface launch at escape velocity (but drag prevents escape)
-    position = Eigen::Vector3d(0.0, 0.0, MARS_RADIUS + LANDER_SIZE/2.0);
-    velocity = Eigen::Vector3d(0.0, 0.0, 5027.0);
+    startOnSurface = true;
+    position = Eigen::Vector3d(0.0, 0.0, MARS_RADIUS); //Not really relevant
+    velocity = Eigen::Vector3d(0.0, 0.0, 0);
     orientation = Eigen::Vector3d(0.0, 0.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     alignToVelocity = false;
-    alignToPosition = false;
+    alignToPosition = true;
     autopilot_enabled = false;
     break;
 
