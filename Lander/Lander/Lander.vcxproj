@@ -166,11 +166,13 @@
     <ClCompile Include="..\src\extension.cpp" />
     <ClCompile Include="..\src\lander.cpp" />
     <ClCompile Include="..\src\lander_graphics.cpp" />
+    <ClCompile Include="..\src\TextureObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\extension.h" />
     <ClInclude Include="..\src\lander.h" />
     <ClInclude Include="..\src\stb_image.h" />
+    <ClInclude Include="..\src\TextureObject.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Keymap.txt" />

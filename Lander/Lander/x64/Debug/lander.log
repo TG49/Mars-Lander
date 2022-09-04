@@ -1,4 +1,7 @@
-﻿  lander_graphics.cpp
+﻿  TextureObject.cpp
+  extension.cpp
+  lander.cpp
+  lander_graphics.cpp
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(446,43): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(539,44): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(539,19): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
@@ -117,5 +120,6 @@ C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1275,31): warn
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1288,33): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1454,41): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1454,20): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+  Generating Code...
   lander.vcxproj -> C:\Users\toman\Desktop\Mars Lander\Lander\x64\Debug\lander.exe
           1 file(s) copied.

@@ -1223,6 +1223,8 @@ void draw_closeup_window (void)
       static float textureOffsetU = 0;
       static float textureOffsetV = 0;
 
+
+      //Find component of velocity in direction of position (normal) and the two directions within the plane
       textureOffsetU += 0.0005*(velocity[0] * delta_t);
       textureOffsetV -= 0.0005 * (velocity[1] * delta_t);
 
@@ -1248,7 +1250,7 @@ void draw_closeup_window (void)
         double uL = u + (vertices[toPlot][0] / circumference);
         double vL = v + (vertices[toPlot][0] / circumference);
         glTexCoord2d(texCoords[toPlot][0] + textureOffsetU , texCoords[toPlot][1] + textureOffsetV);
-        GLfloat height = marsHeight.getHeightValue(u, v);
+        GLfloat height = marsHeight.getHeightValue(uL, vL);
         float normalisedHeight = (((MAX_SURFACE_ALTITUDE - MIN_SURFACE_ALTITUDE) / 2) + MIN_SURFACE_ALTITUDE) * (height / 255.0);
 
         glVertex3d(vertices[toPlot][0], -altitude + height, vertices[toPlot][1]); //Draw Plane
