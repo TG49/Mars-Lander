@@ -908,7 +908,7 @@ void draw_orbital_window(void)
     }
 
     //Draw Mars
-    drawSphere((1.0 - 0.01 / orbital_zoom) * MARS_RADIUS, slices, stacks, lowResMars);
+    drawSphere((1.0 - 0.01 / orbital_zoom) * MARS_RADIUS, slices, stacks, lowResMars.getIndex());
 
 
     glPopMatrix();
@@ -1045,8 +1045,9 @@ void update_closeup_coords (void)
   }
 }
 
+
 void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d>& vertices, 
-    std::vector<int>& indices, std::vector<Eigen::Vector2d>& texCoords, std::vector<double>& surfaceHeight) {
+    std::vector<int>& indices, std::vector<Eigen::Vector2d>& texCoords) {
     double ground_plane_size = 5.0 * TRANSITION_ALTITUDE;
 
     float x = ground_plane_size;
@@ -1059,8 +1060,6 @@ void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eige
         for (float i = 0; i < n; i++) {
             Eigen::Vector2d vertex(ground_plane_size * (-1 + 2 * i / (n - 1)), ground_plane_size * (1 - 2 * k / (m - 1)));
             vertices.push_back(vertex);
-
-            surfaceHeight.push_back(200 * rand() / RAND_MAX);
 
             Eigen::Vector2d textureCoords(numTextureRepeats * i / (n - 1), numTextureRepeats * (1 - k / (m - 1)));
             texCoords.push_back(textureCoords);
@@ -1216,12 +1215,23 @@ void draw_closeup_window (void)
   // Surface colour
   //glColor3f(0.63, 0.33, 0.22);
 
+  double u;
+  double v;
+  getPositionalUVCoordinates(u, v);
+  cout << "u: " << u << ", v: " << v << endl;
+  std::vector<GLuint> pixelHeight;
+  marsHeight.getIndividualPixelValue(u, v, pixelHeight);
+  double height = pixelHeight[0];
+  cout << "Height: " << pixelHeight[0] << endl;
+
+
+
   if (altitude < transition_altitude) {
 
     // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
     // nearby, to get the fog calculations correct in all OpenGL implementations.
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, surface);
+    glBindTexture(GL_TEXTURE_2D, surface.getIndex());
     if (do_texture) glEnable(GL_TEXTURE_2D);
     glColor3f(1.0, 1.0, 1.0);
     glNormal3d(0.0, 1.0, 0.0);
@@ -1229,13 +1239,21 @@ void draw_closeup_window (void)
     glRotated(terrain_angle, 0.0, 1.0, 0.0);
     glBegin(GL_QUADS);
 
-    cout << randHeight.size() << endl;
+    double circumference = 2 * M_PI * MARS_RADIUS;
+   // cout << randHeight.size() << endl;
     for (int i = 0; i < indices.size(); i++) {
         int toPlot = indices[i];
+        double uL = u + (vertices[toPlot][0] / circumference);
+        double vL = v + (vertices[toPlot][0] / circumference);
         glTexCoord2d(texCoords[toPlot][0], texCoords[toPlot][1]);
-        double height = -altitude + randHeight[toPlot];
-        if (height < 0) glVertex3d(vertices[toPlot][0], height, vertices[toPlot][1]);
-        else glVertex3d(vertices[toPlot][0], -height, vertices[toPlot][1]);
+        if (pixelHeight[0] > 0.5) {
+            height = 5000.0 * (pixelHeight[0] - 0.5);
+        }
+        else { 
+            height = -5000.0 * (pixelHeight[0] - 0.5);
+        }
+
+        glVertex3d(vertices[toPlot][0], -altitude + height, vertices[toPlot][1]);
     }
 
     glEnd();
@@ -1320,7 +1338,7 @@ void draw_closeup_window (void)
       glTranslated(0.0, -MARS_RADIUS, 0.0);
       glMultMatrixd(m2); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      drawSphere(MARS_RADIUS * (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100, planet);
+      drawSphere(MARS_RADIUS * (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100, planet.getIndex());
 
     } else {
 
@@ -1328,7 +1346,7 @@ void draw_closeup_window (void)
       glTranslated(0.0, -(MARS_RADIUS + altitude), 0.0);
       glMultMatrixd(m2); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      drawSphere(MARS_RADIUS, 160, 100, planet);
+      drawSphere(MARS_RADIUS, 160, 100, planet.getIndex());
 
     }
 
@@ -2106,12 +2124,12 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
-void loadCloseUpTextures(GLuint& planet, GLuint& surface) {
+void loadCloseUpTextures(textureObject& planet, textureObject& surface, textureObject &heightMap) {
 
     int width, height, nrChannels;
     unsigned char* data = stbi_load("5672_mars_12k_color.jpg", &width, &height, &nrChannels, 0);
 
-    GLuint* textures = new GLuint[2];
+    GLuint* textures = new GLuint[3];
     glGenTextures(2, textures);
     glBindTexture(GL_TEXTURE_2D, textures[1]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -2125,12 +2143,14 @@ void loadCloseUpTextures(GLuint& planet, GLuint& surface) {
     else
         std::cout << "fail";
 
-    planet = textures[1];
     stbi_image_free(data);
+
+    //Set Texture
+    planet.setTextureObject(textures[1], height, width, nrChannels);
 
     unsigned char* data2 = stbi_load("surface.jpg", &width, &height, &nrChannels, 0);
 
-    glGenTextures(2, textures);
+   // glGenTextures(2, textures);
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -2143,54 +2163,42 @@ void loadCloseUpTextures(GLuint& planet, GLuint& surface) {
     else
         std::cout << "fail";
 
-    surface = textures[0];
     stbi_image_free(data2);
+    surface.setTextureObject(textures[0], height, width, nrChannels);
 
+    unsigned char* data3 = stbi_load("5672_marsbump6k.jpg", &width, &height, &nrChannels, 0);
+    cout << "Height: " << height << ", Width: " << width << ", nrChannels: " << nrChannels << endl;
+
+    // glGenTextures(2, textures);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    //unsigned char data[] = { 255, 0, 0, 255 };
+    if (data2)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data3);
+    else
+        std::cout << "fail";
+
+    stbi_image_free(data3);
+    cout << "Setting Height Texture " << endl;
+
+    cout << "Sizeof array:  " << width*height*nrChannels << endl;
+    heightMap.setTextureObject(textures[2], height, width, nrChannels);
+    heightMap.loadPixelData();
     delete[] textures;
-
-
-
-    /*unsigned char* tex_image;
-    unsigned long x;
-    GLsizei ts;
-    bool texture_ok;
-
-    ts = TERRAIN_TEXTURE_SIZE;
-    texture_ok = false;
-    tex_image = (unsigned char*)calloc(sizeof(unsigned char), TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE);
-    for (x = 0; x < TERRAIN_TEXTURE_SIZE * TERRAIN_TEXTURE_SIZE; x++) tex_image[x] = 192 + (unsigned char)(63.0 * rand() / RAND_MAX);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    while (!texture_ok && (ts >= 256)) { // try progressively smaller texture maps, give up below 256x256
-        glGetError(); // clear error
-        if (!gluBuild2DMipmaps(GL_TEXTURE_2D, GL_LUMINANCE, ts, ts, GL_LUMINANCE, GL_UNSIGNED_BYTE, tex_image) && (glGetError() == GL_NO_ERROR)) texture_ok = true;
-        else ts /= 2;
-    }
-    free(tex_image);
-    if (texture_ok) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        surface = textures[0];
-        delete textures;
-        return true;
-    }
-    else {
-        surface = textures[0];
-        delete textures;
-        return false;
-    }*/
    
 
 }
 
-void loadOrbitalTextures(GLuint& orbital) {
+void loadOrbitalTextures(textureObject& orbital) {
     int width, height, nrChannels;
     unsigned char* data = stbi_load("mars_1k_color.jpg", &width, &height, &nrChannels, 0);
-
-    glGenTextures(2, &orbital);
-    glBindTexture(GL_TEXTURE_2D, orbital);
+    GLuint orbitalIndex;
+    glGenTextures(1, &orbitalIndex);
+    glBindTexture(GL_TEXTURE_2D, orbitalIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -2203,6 +2211,23 @@ void loadOrbitalTextures(GLuint& orbital) {
         std::cout << "fail";
 
     stbi_image_free(data);
+    orbital.setTextureObject(orbitalIndex, height, width, nrChannels);
+}
+
+void getPositionalUVCoordinates(double& u, double& v) {
+
+    Eigen::Quaterniond rotation;
+
+    //Take into account the fact that the planet is rotating
+    rotation = Eigen::AngleAxisd(-2 * M_PI * simulation_time / MARS_DAY, Eigen::Vector3d::UnitZ());
+    Eigen::Vector3d rotatedPosition = rotation * position.normalized();
+
+    //Use the rotated position vector to find UV coordinates. The formulae above were changed from the 'standard' so that the reuslt matched what was expected based on the visual location of the craft. 
+    u = 0.75 + (atan2(rotatedPosition[1], rotatedPosition[0])) / (2 * M_PI);
+    if (u > 1) {
+        u -= 1;
+    }
+    v = 0.5 + asin(rotatedPosition[2]) / (M_PI);
 }
 
 int main (int argc, char* argv[])
@@ -2251,7 +2276,7 @@ int main (int argc, char* argv[])
   glutMotionFunc(closeup_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  loadCloseUpTextures(planet, surface);
+  loadCloseUpTextures(planet, surface, marsHeight);
   texture_available = true;
   if (!texture_available) do_texture = false;
   closeup_offset = 50.0;
@@ -2296,7 +2321,7 @@ int main (int argc, char* argv[])
   // Generate the random number table
   srand(0);
   for (i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
-  buildPlanarMesh(50, 100, vertices, indices, texCoords, randHeight);
+  buildPlanarMesh(50, 100, vertices, indices, texCoords);
 
   // Initialize the simulation state
   reset_simulation();
