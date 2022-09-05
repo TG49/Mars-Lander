@@ -1,3 +1,3 @@
 # Mars-Lander
 
-This repository contains the version control of the Mars Lander Project
+This branch contains the development and experimental features of the Mars Lander Project
