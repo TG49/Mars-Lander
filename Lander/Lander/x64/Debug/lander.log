@@ -1,5 +1,4 @@
-﻿  TextureObject.cpp
-  extension.cpp
+﻿  extension.cpp
   lander.cpp
   lander_graphics.cpp
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(446,43): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
@@ -40,86 +39,83 @@ C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(622,35): warni
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(622,25): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(623,32): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(623,22): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(676,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(679,30): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(685,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(687,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(689,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(691,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(693,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(695,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(712,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(717,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(719,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(721,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(759,29): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(759,24): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(759,18): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(776,25): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(671,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(674,30): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(680,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(682,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(684,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(686,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(688,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(690,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(707,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(712,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(714,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(716,32): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(754,29): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(754,24): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(754,18): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(771,25): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(796,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(797,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(798,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(800,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(801,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(802,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(803,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(805,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(806,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(808,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(807,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(809,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(810,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(811,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(812,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(813,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(814,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(815,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(816,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(818,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(819,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(820,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(821,29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(827,78): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(828,40): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(849,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(864,47): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(864,30): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(903,31): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(930,108): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(930,77): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(930,45): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1059,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1060,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1062,13): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1063,13): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1077,37): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(822,78): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(823,40): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(844,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(859,47): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(859,30): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(898,31): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(925,108): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(925,77): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(925,45): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1054,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1055,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1057,13): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1058,13): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1072,37): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
           with
           [
               _Ty=int
           ]
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1078,41): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1073,41): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
           with
           [
               _Ty=int
           ]
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1079,47): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1074,47): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
           with
           [
               _Ty=int
           ]
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1080,43): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1075,43): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
           with
           [
               _Ty=int
           ]
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1127,21): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1127,46): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1127,71): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1128,39): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1128,29): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1128,19): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1160,28): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1226,31): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1227,32): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1252,32): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1275,30): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1275,31): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1288,33): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1454,41): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1454,20): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1108,21): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1108,46): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1108,71): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1109,39): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1109,29): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1109,19): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1141,28): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1246,30): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1246,31): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1259,33): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1425,41): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\Desktop\Mars Lander\Lander\src\lander_graphics.cpp(1425,20): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
   Generating Code...
   lander.vcxproj -> C:\Users\toman\Desktop\Mars Lander\Lander\x64\Debug\lander.exe
           1 file(s) copied.

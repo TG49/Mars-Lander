@@ -79,7 +79,7 @@
 #define LANDER_SIZE 1.0 // (m)
 #define UNLOADED_LANDER_MASS 100.0 // (kg)
 #define FUEL_CAPACITY 100.0 // (l)
-#define FUEL_RATE_AT_MAX_THRUST 0.5 // (l/s)
+#define FUEL_RATE_AT_MAX_THRUST 0.01 // (l/s)
 #define FUEL_DENSITY 1.0 // (kg/l)
 #define NUM_CHUTES 5.0
 // MAX_THRUST, as defined below, is 1.5 * weight of fully loaded lander at surface
@@ -171,7 +171,6 @@ bool startOnSurface;
 textureObject planet;
 textureObject surface;
 textureObject lowResMars;
-heightMapTexture marsHeight;
 
 GLUquadric* qobj;
 
@@ -270,7 +269,7 @@ void closeup_mouse_button (int button, int state, int x, int y);
 void closeup_mouse_motion (int x, int y);
 void glut_special (int key, int x, int y);
 void glut_key (unsigned char k, int x, int y);
-void loadCloseUpTextures(textureObject& planet, textureObject& surface, heightMapTexture& heightMap);
+void loadCloseUpTextures(textureObject& planet, textureObject& surface);
 void loadOrbitalTextures(textureObject& orbital);
 void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d> &vertices,
 	std::vector<int> &indices, std::vector<Eigen::Vector2d> &texCoords);

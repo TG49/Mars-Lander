@@ -633,13 +633,8 @@ void draw_instrument_window (void)
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Draw altimeter
-  if (altitude < TRANSITION_ALTITUDE)
-  {
-      draw_dial(view_width + GAP - 400, INSTRUMENT_HEIGHT / 2, altitude, "Radar Height", "m");
-  }
-  else {
-      draw_dial(view_width + GAP - 400, INSTRUMENT_HEIGHT / 2, altitude, "Altitude", "m");
-  }
+  draw_dial(view_width + GAP - 400, INSTRUMENT_HEIGHT / 2, altitude, "Altitude", "m");
+  
 
   // Draw auto-pilot lamp
   draw_indicator_lamp (view_width+GAP-400, INSTRUMENT_HEIGHT-18, "Auto-pilot off", "Auto-pilot on", autopilot_enabled);
@@ -711,7 +706,7 @@ void draw_instrument_window (void)
   if (!landed) s << ": " << scenario_description[scenario];
   glut_print(view_width+GAP-488, 17, s.str());
   if (landed) {
-    if (distanceToTerrain < LANDER_SIZE/2.0) glut_print(80, 17, "Lander is below the surface!");
+    if ( altitude < LANDER_SIZE/2.0) glut_print(80, 17, "Lander is below the surface!");
     else {
       s.str(""); s << "Fuel consumed " << fixed << FUEL_CAPACITY*(1.0-fuel) << " litres";
       glut_print(view_width+GAP-427, 17, s.str());
@@ -1081,20 +1076,6 @@ void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eige
         }
     }
 
-
-    ofstream file;
-    file.open("vertices.txt");
-    file << "Indices: " << indices.size() << endl;
-    file << "Vertices: " << vertices.size() << endl;
-    for (int i = 0; i < indices.size(); i++) {
-        int toPlot = indices[i];
-       // file << i << ": " <<indices[i] << endl;
-         file << "index " << toPlot << ": " << vertices[toPlot][0] / ground_plane_size << ", " << vertices[toPlot][1] / ground_plane_size << endl;
-        //file << toPlot << ": " << texCoords[toPlot][0] / numTextureRepeats << ", " << texCoords[toPlot][1] / numTextureRepeats << endl;
-    }
-
-    file.close();
-
 }
 
 void draw_closeup_window (void)
@@ -1149,7 +1130,7 @@ void draw_closeup_window (void)
       if (f < SMALL_NUM) fog_density = 1000.0; else fog_density = (1.0-f) / (f*horizon);
       view_depth = closeup_offset + horizon;
     } else {
-      f = 1.0 - (distanceToTerrain / transition_altitude);
+      f = 1.0 - (altitude / transition_altitude);
       if (f < SMALL_NUM) fog_density = 1000.0; else fog_density = (1.0-f) / (f*transition_altitude);
       if (do_texture) {
 	fog_density = 0.00005 + 0.5*fog_density;
@@ -1219,16 +1200,6 @@ void draw_closeup_window (void)
   }
 
   if (altitude < transition_altitude) {
-
-      static float textureOffsetU = 0;
-      static float textureOffsetV = 0;
-
-
-      //Find component of velocity in direction of position (normal) and the two directions within the plane
-      textureOffsetU += 0.0005*(velocity[0] * delta_t);
-      textureOffsetV -= 0.0005 * (velocity[1] * delta_t);
-
-
     // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
     // nearby, to get the fog calculations correct in all OpenGL implementations.
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -1249,11 +1220,9 @@ void draw_closeup_window (void)
         int toPlot = indices[i];
         double uL = u + (vertices[toPlot][0] / circumference);
         double vL = v + (vertices[toPlot][0] / circumference);
-        glTexCoord2d(texCoords[toPlot][0] + textureOffsetU , texCoords[toPlot][1] + textureOffsetV);
-        GLfloat height = marsHeight.getHeightValue(uL, vL);
-        float normalisedHeight = (((MAX_SURFACE_ALTITUDE - MIN_SURFACE_ALTITUDE) / 2) + MIN_SURFACE_ALTITUDE) * (height / 255.0);
+        glTexCoord2d(texCoords[toPlot][0], texCoords[toPlot][1]);
 
-        glVertex3d(vertices[toPlot][0], -altitude + height, vertices[toPlot][1]); //Draw Plane
+        glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]); //Draw Plane
     }
 
     glEnd();
@@ -1304,9 +1273,9 @@ void draw_closeup_window (void)
 	cx = 40.0 * (rand_tri[0] - 0.5);
 	cy = 40.0 * (rand_tri[1] - 0.5);
 	glNormal3d(0.0, 1.0, 0.0);
-	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[3]);
-	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[5]);
-	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[7]);
+	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[3]);
+	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[5]);
+	glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[7]);
       }
       glEnd();
       if (parachute_status != LOST) {
@@ -1317,9 +1286,9 @@ void draw_closeup_window (void)
 	  cx = 40.0 * (rand_tri[0] - 0.5);
 	  cy = 40.0 * (rand_tri[1] - 0.5);
 	  glNormal3d(0.0, 1.0, 0.0);
-	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[3]);
-	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[5]);
-	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -distanceToTerrain, cy + 2.0*LANDER_SIZE*rand_tri[7]);
+	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[2], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[3]);
+	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[4], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[5]);
+	  glVertex3d(cx + 2.0*LANDER_SIZE*rand_tri[6], -altitude, cy + 2.0*LANDER_SIZE*rand_tri[7]);
 	}
 	glEnd();
       }
@@ -1539,8 +1508,6 @@ void update_visualization (void)
   double u, v;
   getPositionalUVCoordinates(u, v);
 
-  distanceToTerrain = altitude - marsHeight.getHeightValue(u, v);
-
   // Use average of current and previous positions when calculating climb and ground speeds
   av_p = (position + last_position).normalized();
   if (delta_t != 0.0) velocity_from_positions = (position - last_position)/delta_t;
@@ -1549,7 +1516,7 @@ void update_visualization (void)
   ground_speed = (velocity_from_positions - climb_speed*av_p).norm();
 
   // Check to see whether the lander has landed
-  if (distanceToTerrain < LANDER_SIZE / 2.0) {
+  if (altitude < LANDER_SIZE / 2.0) {
       if (!startOnSurface) {
           glutIdleFunc(NULL);
           // Estimate position and time of impact
@@ -1560,7 +1527,7 @@ void update_visualization (void)
           mu = (-b - sqrt(b * b - 4.0 * a * c)) / (2.0 * a);
           position = last_position + mu * d;
           simulation_time -= (1.0 - mu) * delta_t;
-          distanceToTerrain = LANDER_SIZE / 2.0;
+          altitude = LANDER_SIZE / 2.0;
           landed = true;
           if ((fabs(climb_speed) > MAX_IMPACT_DESCENT_RATE) || (fabs(ground_speed) > MAX_IMPACT_GROUND_SPEED)) crashed = true;
           velocity_from_positions = Eigen::Vector3d(0.0, 0.0, 0.0);
@@ -1734,10 +1701,6 @@ void reset_simulation (void)
   crashed = false;
   altitude = position.norm() - MARS_RADIUS;
 
-  double u, v;
-  getPositionalUVCoordinates(u, v);
-  distanceToTerrain = altitude - marsHeight.getHeightValue(u, v);
-
   if (startOnSurface) {
       position = position.normalized() * MARS_RADIUS;
       alignToPosition = true;
@@ -1747,14 +1710,13 @@ void reset_simulation (void)
 
 
   //Stop Lander from being 'landed' if it starts at the surface
-  if (distanceToTerrain < LANDER_SIZE / 2.0) {
+  if (altitude < LANDER_SIZE / 2.0) {
 
       //cout << "Altitude less than lander/2" << endl;
      // cout << "Distance to terrain " << distanceToTerrain << endl;
       //Update position so that the lander gets enough height to sit on the surface
       position = position * (1 + (abs(distanceToTerrain) + LANDER_SIZE / 2) / position.norm()); //get current position + small amount to get to the surface. Works as position has initial magnitude position.norm();
       altitude = position.norm() - MARS_RADIUS;
-      distanceToTerrain = altitude - marsHeight.getHeightValue(u, v);
       velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
       positionOnSurface = position;
 
@@ -2171,12 +2133,12 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
-void loadCloseUpTextures(textureObject& planet, textureObject& surface, heightMapTexture &heightMap) {
+void loadCloseUpTextures(textureObject& planet, textureObject& surface) {
 
     int width, height, nrChannels;
     unsigned char* data = stbi_load("5672_mars_12k_color.jpg", &width, &height, &nrChannels, 0);
 
-    GLuint* textures = new GLuint[3];
+    GLuint* textures = new GLuint[2];
     glGenTextures(2, textures);
     glBindTexture(GL_TEXTURE_2D, textures[1]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -2212,28 +2174,6 @@ void loadCloseUpTextures(textureObject& planet, textureObject& surface, heightMa
 
     stbi_image_free(data2);
     surface.setTextureObject(textures[0], height, width, nrChannels);
-
-    unsigned char* data3 = stbi_load("5672_marsbump6k.jpg", &width, &height, &nrChannels, 0);
-    //cout << "Height: " << height << ", Width: " << width << ", nrChannels: " << nrChannels << endl;
-
-    // glGenTextures(2, textures);
-    glBindTexture(GL_TEXTURE_2D, textures[2]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    //unsigned char data[] = { 255, 0, 0, 255 };
-    if (data2)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data3);
-    else
-        std::cout << "fail";
-
-    stbi_image_free(data3);
-    //cout << "Setting Height Texture " << endl;
-
-    //cout << "Sizeof array:  " << width*height*nrChannels << endl;
-    heightMap.setTextureObject(textures[2], height, width, nrChannels);
     delete[] textures;
    
 
@@ -2321,7 +2261,7 @@ int main (int argc, char* argv[])
   glutMotionFunc(closeup_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  loadCloseUpTextures(planet, surface, marsHeight);
+  loadCloseUpTextures(planet, surface);
   texture_available = true;
   if (!texture_available) do_texture = false;
   closeup_offset = 50.0;
@@ -2366,7 +2306,7 @@ int main (int argc, char* argv[])
   // Generate the random number table
   srand(0);
   for (int i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
-  buildPlanarMesh(50, 100, vertices, indices, texCoords);
+  buildPlanarMesh(100, 3, vertices, indices, texCoords);
 
   // Initialize the simulation state
   Initialised = false;
