@@ -18,3 +18,7 @@ Child class then builds these accordingly in their constructors.
 https://stackoverflow.com/questions/61251452/how-to-add-texture-to-this-sphere
 
 	Would likely make adding a bump map to the orbital window much easier
+
+Currently Runs slowly in close up view when landing. Also the ground texture not showing. 
+	Try grouping the two objects in the window into a single struct, and building the textures with one glGenTexture command. Think this is the culprit for the texture
+	Not sure about the speeed.

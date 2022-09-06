@@ -29,6 +29,7 @@
 #endif
 
 #include "TextureObject.h"
+#include "planar_mesh.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -167,21 +168,16 @@ bool alignToPosition;
 bool startOnSurface;
 int LoD;
 int numberOfTextureRepeats = 100;
-int meshResolution = 7;
+int meshResolution = 5;
 
 //Texture
-
-textureObject planet;
-textureObject surface;
 textureObject lowResMars;
 
 GLUquadric* qobj;
 
-//Planar Mesh
-std::vector<Eigen::Vector2d> vertices; //2D as the y-axis changes with time
-std::vector<std::vector<int>> indicesList;
-std::vector<Eigen::Vector2d> texCoords;
-std::vector<double> randHeight;
+SquarePlaneMesh surfaceMesh;
+sphericalMesh closeUpPlanet;
+sphericalMesh orbitalPlanet;
 
 
 
@@ -235,7 +231,6 @@ quat_t track_quats (const double p1x, const double p1y, const double p2x, const 
 void microsecond_time (unsigned long long &t);
 void fghCircleTable (double **sint, double **cost, const int n);
 void glutOpenHemisphere (GLdouble radius, GLint slices, GLint stacks);
-void drawSphere (GLdouble radius, GLint slices, GLint stacks, GLuint texture);
 void glutCone (GLdouble base, GLdouble height, GLint slices, GLint stacks, bool closed);
 void enable_lights (void);
 void setup_lights (void);

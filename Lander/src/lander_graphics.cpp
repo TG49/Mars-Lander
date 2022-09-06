@@ -77,9 +77,6 @@
 #define DECLARE_GLOBAL_VARIABLES
 #include "lander.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 void invert (double m[], double mout[])
   // Inverts a 4x4 OpenGL rotation matrix
 {
@@ -353,27 +350,6 @@ void glutOpenHemisphere (GLdouble radius, GLint slices, GLint stacks)
   
   free(sint1); free(cost1);
   free(sint2); free(cost2);
-}
-
-void drawSphere (GLdouble radius, GLint slices, GLint stacks, GLuint texture)
-  // Modified from freeglut's glutSolidSphere, we use this to draw a mottled sphere by modulating
-  // the vertex colours.
-{
-    
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-    GLUquadric* quad = gluNewQuadric();
-    gluQuadricTexture(quad, GL_TRUE);
-    gluSphere(quad, radius, slices, stacks);
-    glDisable(GL_TEXTURE_2D);
-    gluDeleteQuadric(quad);
-
 }
 
 void glutCone (GLdouble base, GLdouble height, GLint slices, GLint stacks, bool closed)
@@ -909,8 +885,7 @@ void draw_orbital_window(void)
     }
 
     //Draw Mars
-    drawSphere((1.0 - 0.01 / orbital_zoom) * MARS_RADIUS, slices, stacks, lowResMars.getIndex());
-
+    orbitalPlanet.drawSphere((1.0 - 0.01 / orbital_zoom) * MARS_RADIUS, slices, stacks);
 
     glPopMatrix();
     // Draw previous lander positions in cyan that fades with time
@@ -1046,62 +1021,6 @@ void update_closeup_coords (void)
   }
 }
 
-
-void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d>& vertices, 
-    std::vector<std::vector<int>>& indices, std::vector<Eigen::Vector2d>& texCoords) {
-    double ground_plane_size = 5.0 * TRANSITION_ALTITUDE;
-
-    if (meshResolution >= 9) {
-        meshResolution = 8;
-    }
-    else if (meshResolution < 3) { meshResolution = 3; }
-
-    if (numTextureRepeats < 1) {
-        numberOfTextureRepeats = 1;
-    }
-    LoD = meshResolution - 2;
-    meshResolution = pow(2, meshResolution);
-
-
-    float m = meshResolution;
-    float n = meshResolution;
-
-    for (float k = 0; k < m; k++) {
-        for (float i = 0; i < n; i++) {
-            Eigen::Vector2d vertex(ground_plane_size * (-1 + 2 * i / (n - 1)), ground_plane_size * (1 - 2 * k / (m - 1)));
-            vertices.push_back(vertex);
-
-            Eigen::Vector2d textureCoords(numTextureRepeats * i / (n - 1), numTextureRepeats * (1 - k / (m - 1)));
-            texCoords.push_back(textureCoords);
-        }
-    }
-    buildLevelsOfDetail(meshResolution, LoD, indices);
-
-
-}
-
-void buildLevelsOfDetail(int meshResolution, int numberOfLODs, std::vector<std::vector<int>>& indices) {
-    indices.resize(numberOfLODs);
-    for (int j = 0; j < indices.size(); j++)
-    {
-        int multiple = pow(2, j);
-        for (float k = 0; k < meshResolution - multiple; k += multiple) {
-            for (float i = 0; i < meshResolution - multiple; i += multiple) {
-                indices[j].push_back(k * meshResolution + i);
-                indices[j].push_back(k * meshResolution + i + multiple);
-                indices[j].push_back((k + multiple) * meshResolution + i + multiple);
-                indices[j].push_back((k + multiple) * meshResolution + i);
-            }
-        }
-      /* std::ofstream file;
-        file.open(std::to_string(j) + ".txt");
-        for (int i = 0; i < indices[j].size(); i++)
-        {
-            file << indices[j].at(i) << endl;
-        }*/
-    }
-}
-
 void draw_closeup_window (void)
   // Draws the close-up view of the lander
 {
@@ -1227,7 +1146,7 @@ void draw_closeup_window (void)
     // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
     // nearby, to get the fog calculations correct in all OpenGL implementations.
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, surface.getIndex());
+    glBindTexture(GL_TEXTURE_2D, surfaceMesh.getTexture().getIndex());
     if (do_texture) glEnable(GL_TEXTURE_2D);
     glColor3f(1.0, 1.0, 1.0);
     glNormal3d(0.0, 1.0, 0.0);
@@ -1235,26 +1154,19 @@ void draw_closeup_window (void)
     glRotated(terrain_angle, 0.0, 1.0, 0.0);
     glBegin(GL_QUADS);
 
-    double u;
-    double v;
-    getPositionalUVCoordinates(u, v);
-    double circumference = 2 * M_PI * MARS_RADIUS;
-   // cout << randHeight.size() << endl;
-    int useLoD = indicesList.size()-1;
+    int useLoD = 0;
 
-    //Use LoDs
-    while (useLoD != 0)
+    //Use LoDs. Select which lod to use
+    while (useLoD < surfaceMesh.getIndices().size())
     {
-        if (altitude < transition_altitude / (pow(1.4, useLoD))) { break; }
-        useLoD -= 1;
+        if (altitude > transition_altitude / (pow(1.4, useLoD))) { break; }
+        useLoD += 1;
     }
     cout << "Using LoD: " << useLoD << endl;
-    for (int i = 0; i < indicesList[useLoD].size(); i++) {
-        int toPlot = indicesList[useLoD][i];
-        double uL = u + (vertices[toPlot][0] / circumference);
-        double vL = v + (vertices[toPlot][0] / circumference);
-        glTexCoord2d(texCoords[toPlot][0], texCoords[toPlot][1]);
-        glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]); //Draw Plane
+    for (int i = 0; i < surfaceMesh.getIndices()[useLoD].size(); i++) {
+        int toPlot = surfaceMesh.getIndices()[useLoD][i];
+        glTexCoord2d(surfaceMesh.getTextureCoordinates()[toPlot][0], surfaceMesh.getTextureCoordinates()[toPlot][1]);
+        glVertex3d(surfaceMesh.getVertices()[toPlot][0], -altitude, surfaceMesh.getVertices()[toPlot][1]); //Draw Plane
     }
 
     glEnd();
@@ -1339,7 +1251,7 @@ void draw_closeup_window (void)
       glTranslated(0.0, -MARS_RADIUS, 0.0);
       glMultMatrixd(m2); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      drawSphere(MARS_RADIUS * (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100, planet.getIndex());
+      closeUpPlanet.drawSphere(MARS_RADIUS* (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100);
 
     } else {
 
@@ -1347,7 +1259,7 @@ void draw_closeup_window (void)
       glTranslated(0.0, -(MARS_RADIUS + altitude), 0.0);
       glMultMatrixd(m2); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      drawSphere(MARS_RADIUS, 160, 100, planet.getIndex());
+      closeUpPlanet.drawSphere(MARS_RADIUS, 100, 100);
 
     }
 
@@ -2165,73 +2077,6 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
-void loadCloseUpTextures(textureObject& planet, textureObject& surface) {
-
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load("5672_mars_12k_color.jpg", &width, &height, &nrChannels, 0);
-
-    GLuint* textures = new GLuint[2];
-    glGenTextures(2, textures);
-    glBindTexture(GL_TEXTURE_2D, textures[1]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-    //unsigned char data[] = { 255, 0, 0, 255 };
-    if (data)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    else
-        std::cout << "fail";
-
-    stbi_image_free(data);
-
-    //Set Texture
-    planet.setTextureObject(textures[1], height, width, nrChannels);
-
-    unsigned char* data2 = stbi_load("surface.jpg", &width, &height, &nrChannels, 0);
-
-   // glGenTextures(2, textures);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    //unsigned char data[] = { 255, 0, 0, 255 };
-    if (data2)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
-    else
-        std::cout << "fail";
-
-    stbi_image_free(data2);
-    surface.setTextureObject(textures[0], height, width, nrChannels);
-    delete[] textures;
-   
-
-}
-
-void loadOrbitalTextures(textureObject& orbital) {
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load("mars_1k_color.jpg", &width, &height, &nrChannels, 0);
-    GLuint orbitalIndex;
-    glGenTextures(1, &orbitalIndex);
-    glBindTexture(GL_TEXTURE_2D, orbitalIndex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-    //unsigned char data[] = { 255, 0, 0, 255 };
-    if (data)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    else
-        std::cout << "fail";
-
-    stbi_image_free(data);
-    orbital.setTextureObject(orbitalIndex, height, width, nrChannels);
-}
-
 void getPositionalUVCoordinates(double& u, double& v) {
 
     Eigen::Quaterniond rotation;
@@ -2293,7 +2138,13 @@ int main (int argc, char* argv[])
   glutMotionFunc(closeup_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  loadCloseUpTextures(planet, surface);
+  //loadCloseUpTextures(planet, surface);
+
+  //build meshes
+  surfaceMesh.buildSquarePlane(meshResolution, numberOfTextureRepeats, 5 * TRANSITION_ALTITUDE, "surface.jpg");
+  closeUpPlanet.buildSphereObject("5672_mars_12k_color.jpg");
+
+
   texture_available = true;
   if (!texture_available) do_texture = false;
   closeup_offset = 50.0;
@@ -2322,7 +2173,7 @@ int main (int argc, char* argv[])
   glutMotionFunc(orbital_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  loadOrbitalTextures(lowResMars);
+  orbitalPlanet.buildSphereObject("mars_1k_color.jpg"); //build planet
   orbital_quat.v(0) = 0.53; orbital_quat.v(1) = -0.21;
   orbital_quat.v(2) = 0.047; orbital_quat.s = 0.82;
   normalize_quat(orbital_quat);
@@ -2338,7 +2189,6 @@ int main (int argc, char* argv[])
   // Generate the random number table
   srand(0);
   for (int i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
-  buildPlanarMesh(numberOfTextureRepeats, meshResolution, vertices, indicesList, texCoords);
 
   // Initialize the simulation state
   Initialised = false;
