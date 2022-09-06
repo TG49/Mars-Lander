@@ -165,6 +165,9 @@ Eigen::Quaterniond rotQuat;
 bool alignToVelocity;
 bool alignToPosition;
 bool startOnSurface;
+int LoD;
+int numberOfTextureRepeats = 100;
+int meshResolution = 7;
 
 //Texture
 
@@ -176,7 +179,7 @@ GLUquadric* qobj;
 
 //Planar Mesh
 std::vector<Eigen::Vector2d> vertices; //2D as the y-axis changes with time
-std::vector<int> indices;
+std::vector<std::vector<int>> indicesList;
 std::vector<Eigen::Vector2d> texCoords;
 std::vector<double> randHeight;
 
@@ -271,7 +274,8 @@ void glut_special (int key, int x, int y);
 void glut_key (unsigned char k, int x, int y);
 void loadCloseUpTextures(textureObject& planet, textureObject& surface);
 void loadOrbitalTextures(textureObject& orbital);
-void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d> &vertices,
-	std::vector<int> &indices, std::vector<Eigen::Vector2d> &texCoords);
+void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d>& vertices,
+	std::vector<std::vector<int>>& indices, std::vector<Eigen::Vector2d>& texCoords);
 void getPositionalUVCoordinates(double &u, double &v);
+void buildLevelsOfDetail(int meshResolution, int numberOfLODs, std::vector<std::vector<int>>& indices);
 #endif

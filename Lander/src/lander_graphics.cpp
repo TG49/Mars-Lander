@@ -1048,11 +1048,20 @@ void update_closeup_coords (void)
 
 
 void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d>& vertices, 
-    std::vector<int>& indices, std::vector<Eigen::Vector2d>& texCoords) {
+    std::vector<std::vector<int>>& indices, std::vector<Eigen::Vector2d>& texCoords) {
     double ground_plane_size = 5.0 * TRANSITION_ALTITUDE;
 
-    float x = ground_plane_size;
-    float y = ground_plane_size;
+    if (meshResolution >= 9) {
+        meshResolution = 8;
+    }
+    else if (meshResolution < 3) { meshResolution = 3; }
+
+    if (numTextureRepeats < 1) {
+        numberOfTextureRepeats = 1;
+    }
+    LoD = meshResolution - 2;
+    meshResolution = pow(2, meshResolution);
+
 
     float m = meshResolution;
     float n = meshResolution;
@@ -1066,16 +1075,31 @@ void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eige
             texCoords.push_back(textureCoords);
         }
     }
+    buildLevelsOfDetail(meshResolution, LoD, indices);
 
-    for (float k = 0; k < m - 1; k++) {
-        for (float i = 0; i < n - 1; i++) {
-            indices.push_back(k * n + i);
-            indices.push_back(k * n + i + 1);
-            indices.push_back((k + 1) * n + i + 1);
-            indices.push_back((k + 1) * n + i);
+
+}
+
+void buildLevelsOfDetail(int meshResolution, int numberOfLODs, std::vector<std::vector<int>>& indices) {
+    indices.resize(numberOfLODs);
+    for (int j = 0; j < indices.size(); j++)
+    {
+        int multiple = pow(2, j);
+        for (float k = 0; k < meshResolution - multiple; k += multiple) {
+            for (float i = 0; i < meshResolution - multiple; i += multiple) {
+                indices[j].push_back(k * meshResolution + i);
+                indices[j].push_back(k * meshResolution + i + multiple);
+                indices[j].push_back((k + multiple) * meshResolution + i + multiple);
+                indices[j].push_back((k + multiple) * meshResolution + i);
+            }
         }
+      /* std::ofstream file;
+        file.open(std::to_string(j) + ".txt");
+        for (int i = 0; i < indices[j].size(); i++)
+        {
+            file << indices[j].at(i) << endl;
+        }*/
     }
-
 }
 
 void draw_closeup_window (void)
@@ -1216,12 +1240,20 @@ void draw_closeup_window (void)
     getPositionalUVCoordinates(u, v);
     double circumference = 2 * M_PI * MARS_RADIUS;
    // cout << randHeight.size() << endl;
-    for (int i = 0; i < indices.size(); i++) {
-        int toPlot = indices[i];
+    int useLoD = indicesList.size()-1;
+
+    //Use LoDs
+    while (useLoD != 0)
+    {
+        if (altitude < transition_altitude / (pow(1.4, useLoD))) { break; }
+        useLoD -= 1;
+    }
+    cout << "Using LoD: " << useLoD << endl;
+    for (int i = 0; i < indicesList[useLoD].size(); i++) {
+        int toPlot = indicesList[useLoD][i];
         double uL = u + (vertices[toPlot][0] / circumference);
         double vL = v + (vertices[toPlot][0] / circumference);
         glTexCoord2d(texCoords[toPlot][0], texCoords[toPlot][1]);
-
         glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]); //Draw Plane
     }
 
@@ -2306,7 +2338,7 @@ int main (int argc, char* argv[])
   // Generate the random number table
   srand(0);
   for (int i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
-  buildPlanarMesh(100, 3, vertices, indices, texCoords);
+  buildPlanarMesh(numberOfTextureRepeats, meshResolution, vertices, indicesList, texCoords);
 
   // Initialize the simulation state
   Initialised = false;
