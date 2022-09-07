@@ -17,8 +17,7 @@ void updateMass(double& mass);
 void Euler();
 void Verlet();
 void adjustAttitude();
-void velocityAlign(bool alignToVelocity);
 
-Eigen::Matrix4d quaternionRotationMatrix(double pitch, double yaw, double roll, std::vector<Eigen::Vector3d> axes, Eigen::Quaterniond& currentOrientation);
+Eigen::Matrix4d quaternionRotationMatrix(double pitch, double yaw, double roll, std::vector<Eigen::Vector3d> axes);
 
 #endif

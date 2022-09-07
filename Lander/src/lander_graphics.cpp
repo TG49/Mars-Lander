@@ -77,106 +77,6 @@
 #define DECLARE_GLOBAL_VARIABLES
 #include "lander.h"
 
-void invert (double m[], double mout[])
-  // Inverts a 4x4 OpenGL rotation matrix
-{
-  double zero_three, one_three, two_three;
-  zero_three = -m[12]*m[0] - m[13]*m[1] - m[14]*m[2];
-  one_three = -m[12]*m[4] - m[13]*m[5] - m[14]*m[6];
-  two_three = -m[12]*m[8] - m[13]*m[9] - m[14]*m[10];
-  mout[1] = m[4]; mout[4] = m[1]; mout[2] = m[8]; mout[8] = m[2]; 
-  mout[6] = m[9]; mout[9] = m[6]; mout[12] = zero_three; mout[13] = one_three; 
-  mout[14] = two_three; mout[0] = m[0]; mout[5] = m[5]; mout[10] = m[10];
-  mout[15] = 1.0; mout[3] = 0.0; mout[7] = 0.0; mout[11] = 0.0;
-}
-
-void xyz_euler_to_matrix (Eigen::Vector3d ang, double m[])
-  // Constructs a 4x4 OpenGL rotation matrix from xyz Euler angles
-{
-  double sin_a, sin_b, sin_g, cos_a, cos_b, cos_g;
-  double ra, rb, rg;
-
-  // Pre-calculate radian angles
-  ra = ang(0)*M_PI/(double)180;
-  rb = ang(1)*M_PI/(double)180;
-  rg = ang(2)*M_PI/(double)180;
-
-  // Pre-calculate sines and cosines
-  cos_a = cos(ra);
-  cos_b = cos(rb);
-  cos_g = cos(rg);
-  sin_a = sin(ra);
-  sin_b = sin(rb);
-  sin_g = sin(rg);
-
-  // Create the correct matrix coefficients
-  m[0] = cos_a * cos_b;
-  m[1] = sin_a * cos_b;
-  m[2] = - sin_b;
-  m[3] = 0.0;
-  m[4] = cos_a * sin_b * sin_g - sin_a * cos_g;
-  m[5] = sin_a * sin_b * sin_g + cos_a * cos_g;
-  m[6] = cos_b * sin_g;
-  m[7] = 0.0;
-  m[8] = cos_a * sin_b * cos_g + sin_a * sin_g;
-  m[9] = sin_a * sin_b * cos_g - cos_a * sin_g;
-  m[10] = cos_b * cos_g;
-  m[11] = 0.0;
-  m[12] = 0.0;
-  m[13] = 0.0;
-  m[14] = 0.0;
-  m[15] = 1.0;
-}
-
-Eigen::Vector3d matrix_to_xyz_euler (double m[])
-  // Decomposes a 4x4 OpenGL rotation matrix into xyz Euler angles
-{
-  double tmp;
-  Eigen::Vector3d ang;
-
-  // Catch degenerate elevation cases
-  if (m[2] < -0.99999999) {
-    ang(1) = 90.0;
-    ang(0) = 0.0;
-    ang(2) = acos(m[8]);
-    if ( (sin(ang(2))>0.0) ^ (m[4]>0.0) ) ang(2) = -ang(2);
-    ang(2) *= 180.0/M_PI;
-    return ang;
-  }
-  if (m[2] > 0.99999999) {
-    ang(1) = -90.0;
-    ang(0) = 0.0;
-    ang(2) = acos(m[5]);
-    if ( (sin(ang(2))<0.0) ^ (m[4]>0.0) ) ang(2) = -ang(2);
-    ang(2) *= 180.0/M_PI;
-    return ang;
-  }
-
-  // Non-degenerate elevation - between -90 and +90
-  ang(1) = asin( -m[2] );
-
-  // Now work out azimuth - between -180 and +180
-  tmp = m[0]/cos(ang(1)); // the denominator will not be zero
-  if ( tmp <= -1.0 ) ang(0) = M_PI;
-  else if ( tmp >= 1.0 ) ang(0) = 0.0;
-  else ang(0) = acos( tmp );
-  if ( ((sin(ang(0)) * cos(ang(1)))>0.0) ^ ((m[1])>0.0) ) ang(0) = -ang(0);
-
-  // Now work out roll - between -180 and +180
-  tmp = m[10]/cos(ang(1)); // the denominator will not be zero
-  if ( tmp <= -1.0 ) ang(2) = M_PI;
-  else if ( tmp >= 1.0 ) ang(2) = 0.0;
-  else ang(2) = acos( tmp );
-  if ( ((sin(ang(2)) * cos(ang(1)))>0.0) ^ ((m[6])>0.0) ) ang(2) = -ang(2);
-
-  // Convert to degrees
-  ang(1) *= 180.0/M_PI;
-  ang(0) *= 180.0/M_PI;
-  ang(2) *= 180.0/M_PI;
-
-  return ang;
-}
-
 void normalize_quat (quat_t &q)
   // Normalizes a quaternion
 {
@@ -1031,7 +931,7 @@ void draw_closeup_window (void)
   static unsigned short rn = 0;
   Eigen::Vector3d s, t, n;
   double lander_drag, chute_drag, glow_factor, aspect_ratio, view_depth, f, tmp, cs, gs;
-  double horizon, fog_density, cx, cy, m[16], m2[16], transition_altitude, ground_plane_size;
+  double horizon, fog_density, cx, cy, modellingMatrixInverted[16], transition_altitude, ground_plane_size;
   unsigned short i, j, rtmp;
   GLfloat fogcolour[4];
   bool dark_side;
@@ -1105,12 +1005,18 @@ void draw_closeup_window (void)
   // Mutual perpendicular to these two vectors - this must map to the world z-axis
   n = t.cross(s);
 
+  Eigen::Matrix4d modellingMatrix = Eigen::Matrix4d::Identity();
+  modellingMatrix.block<3, 1>(0, 0) = t;
+  modellingMatrix.block<3, 1>(0, 1) = s;
+  modellingMatrix.block<3, 1>(0, 2) = n;
+
   // Construct modelling matrix (rotation only) from these three vectors
-  m[0] = t(0); m[1] = t(1); m[2] = t(2); m[3] = 0.0;
+  /*m[0] = t(0); m[1] = t(1); m[2] = t(2); m[3] = 0.0;
   m[4] = s(0); m[5] = s(1); m[6] = s(2); m[7] = 0.0;
   m[8] = n(0); m[9] = n(1); m[10] = n(2); m[11] = 0.0;
-  m[12] = 0.0; m[13] = 0.0; m[14] = 0.0; m[15] = 1.0;
-  invert(m, m2); 
+  m[12] = 0.0; m[13] = 0.0; m[14] = 0.0; m[15] = 1.0;*/
+  Eigen::Matrix4d invertedModellingMatrix = modellingMatrix.inverse();
+  Eigen::Map<Eigen::Matrix4d>(modellingMatrixInverted, 0, 0) = invertedModellingMatrix;
 
   // Update terrain texture/line offsets
   if (simulation_time != last_redraw_time) {
@@ -1134,7 +1040,7 @@ void draw_closeup_window (void)
   if (static_lighting) {
     // Specify light positions here, to fix them in the planetary coordinate system
     glPushMatrix();
-    glMultMatrixd(m2); // now in the planetary coordinate system
+    glMultMatrixd(modellingMatrixInverted); // now in the planetary coordinate system
     glLightfv(GL_LIGHT2, GL_POSITION, minus_y);
     glLightfv(GL_LIGHT3, GL_POSITION, plus_y);
     glLightfv(GL_LIGHT4, GL_POSITION, plus_y);
@@ -1143,7 +1049,7 @@ void draw_closeup_window (void)
   }
 
   if (altitude < transition_altitude) {
-      surfaceMesh.drawMesh(terrain_angle, altitude, transition_altitude);
+      closeUpMeshObjects.getPlaneMesh().drawMesh(terrain_angle, altitude, transition_altitude);
 
     if (!do_texture) { // draw lines on the ground plane at constant x (to show ground speed)
       glEnable(GL_BLEND);
@@ -1220,17 +1126,17 @@ void draw_closeup_window (void)
 
       // Draw the planet reduced size at a reduced displacement, to avoid numerical OpenGL problems with huge viewing distances.
       glTranslated(0.0, -MARS_RADIUS, 0.0);
-      glMultMatrixd(m2); // now in the planetary coordinate system
+      glMultMatrixd(modellingMatrixInverted); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      closeUpPlanet.drawSphere(MARS_RADIUS* (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100);
+      closeUpMeshObjects.getPlanetObject().drawSphere(MARS_RADIUS* (MARS_RADIUS / (altitude + MARS_RADIUS)), 160, 100);
 
     } else {
 
       // Draw the planet actual size at the correct displacement
       glTranslated(0.0, -(MARS_RADIUS + altitude), 0.0);
-      glMultMatrixd(m2); // now in the planetary coordinate system
+      glMultMatrixd(modellingMatrixInverted); // now in the planetary coordinate system
       glRotated(360.0*simulation_time/MARS_DAY, 0.0, 0.0, 1.0); // to make the planet spin
-      closeUpPlanet.drawSphere(MARS_RADIUS, 100, 100);
+      closeUpMeshObjects.getPlanetObject().drawSphere(MARS_RADIUS, 100, 100);
 
     }
 
@@ -1274,12 +1180,8 @@ void draw_closeup_window (void)
 
   // Switch to the planetary coordinate system
   glPushMatrix();
-  glMultMatrixd(m2);
+  glMultMatrixd(modellingMatrixInverted);
 
-  // Lander orientation relative to planetary coordinate system - xyz Euler angles
-
-  //m = rotationArray;
-  //xyz_euler_to_matrix(orientation, m);
   glMultMatrixd(rotationArray);
 
   // Put lander's centre of gravity at the origin
@@ -1483,6 +1385,10 @@ void update_visualization (void)
   refresh_all_subwindows();
 }
 
+/// <summary>
+/// Aligns the orientatino vector to a specified vector. Based on the pre-defined attiitude stabiliser
+/// </summary>
+/// <param name="vector">Vector to align to</param>
 void AlignToVector (Eigen::Vector3d vector)
   // Three-axis stabilization to ensure the lander's base is always pointing downwards 
 {
@@ -1553,7 +1459,6 @@ Eigen::Vector3d thrust_wrt_world (void)
     //Find output Vector
 
     a(0) = 0.0; a(1) = 0.0; a(2) = lagged_throttle*MAX_THRUST;
-    //xyz_euler_to_matrix(orientation, m);
 
     b(0) = rotationArray[0]*a(0) + rotationArray[4]*a(1) + rotationArray[8]*a(2);
     b(1) = rotationArray[1]*a(0) + rotationArray[5]*a(1) + rotationArray[9]*a(2);
@@ -2048,6 +1953,12 @@ void glut_key (unsigned char k, int x, int y)
   }
 }
 
+
+/// <summary>
+/// Gets the current position of the lander above the sphere as a U,V coordinate on the rectangular texture of the planet
+/// </summary>
+/// <param name="u">u parameter to save result in</param>
+/// <param name="v">v parameter to save result in</param>
 void getPositionalUVCoordinates(double& u, double& v) {
 
     Eigen::Quaterniond rotation;
@@ -2069,7 +1980,9 @@ int main (int argc, char* argv[])
 {
 
 
-  // Main GLUT window
+  /****************************************************
+  * GLUT Main Window
+  ****************************************************/
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutInitWindowPosition(0, 0);
@@ -2088,7 +2001,9 @@ int main (int argc, char* argv[])
   glutSpecialFunc(glut_special);
 
 
-  // The close-up view subwindow
+  /*******************************************************
+  * Close Up View Window
+  *******************************************************/
   closeup_window = glutCreateSubWindow(main_window, GAP, GAP, view_width, view_height);
   glDrawBuffer(GL_BACK);
   setup_lights();
@@ -2109,11 +2024,10 @@ int main (int argc, char* argv[])
   glutMotionFunc(closeup_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  //loadCloseUpTextures(planet, surface);
 
-  //build meshes
-  surfaceMesh.buildSquarePlane(meshResolution, numberOfTextureRepeats, 5 * TRANSITION_ALTITUDE, "surface.jpg");
-  closeUpPlanet.buildSphereObject("5672_mars_12k_color.jpg");
+  //Build Close Up Objects. 
+  closeUpMeshObjects.buildcloseUpMeshes(meshResolution, numberOfTextureRepeats, 5 * TRANSITION_ALTITUDE,
+      "5672_mars_12k_color.jpg", "surface.jpg");
 
 
   texture_available = true;
@@ -2123,7 +2037,9 @@ int main (int argc, char* argv[])
   closeup_yr = 0.0;
   terrain_angle = 0.0;
 
-  // The orbital view subwindow
+  /*********************************************
+  * Orbital View Window
+  **********************************************/
   orbital_window = glutCreateSubWindow(main_window, view_width + 3*GAP, GAP, view_width, view_height);
   glDrawBuffer(GL_BACK);
   setup_lights();
@@ -2144,24 +2060,34 @@ int main (int argc, char* argv[])
   glutMotionFunc(orbital_mouse_motion);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
-  orbitalPlanet.buildSphereObject("mars_1k_color.jpg"); //build planet
+
+  //Build required objects in the orbital view window
+  orbitalPlanet.loadTexture("mars_1k_color.jpg");
+
+
   orbital_quat.v(0) = 0.53; orbital_quat.v(1) = -0.21;
   orbital_quat.v(2) = 0.047; orbital_quat.s = 0.82;
   normalize_quat(orbital_quat);
   save_orbital_zoom = 1.0;
   orbital_zoom = 1.0;
 
-  // The instrument subwindow
+  /***********************************************
+  * Instrument Subwindow
+  ***********************************************/
   instrument_window = glutCreateSubWindow(main_window, GAP, view_height + 3*GAP, 2*(view_width+GAP), INSTRUMENT_HEIGHT);
   glutDisplayFunc(draw_instrument_window);
   glutKeyboardFunc(glut_key);
   glutSpecialFunc(glut_special);
 
-  // Generate the random number table
+  /****************************************
+  * Random Number Table
+  *****************************************/
   srand(0);
   for (int i=0; i<N_RAND; i++) randtab[i] = (float)rand()/RAND_MAX;
 
-  // Initialize the simulation state
+  /**************************************
+  * Initialise Simulation State
+  **************************************/
   Initialised = false;
   reset_simulation();
   microsecond_time(time_program_started);

@@ -19,6 +19,10 @@
 
 //Update the acceleration vector associated with the lander craft.
 
+/// <summary>
+/// Function to use for the autopilot
+/// </summary>
+/// <param name=""></param>
 void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
@@ -26,7 +30,9 @@ void autopilot (void)
 }
 
 
-
+/// <summary>
+/// Computes the integrator for the next timestep
+/// </summary>
 void numerical_dynamics (void)
   // This is the function that performs the numerical integration to update the
   // lander's pose. The time step is delta_t (global variable).
@@ -37,25 +43,21 @@ void numerical_dynamics (void)
     }
     else if (alignToVelocity) {
         AlignToVector(velocity);
-            // velocityAlign();
     } else{
         adjustAttitude();
     }
     //Euler();
     Verlet();
-    
-    //std::cout << "x: " << orientation.x << " y: " << orientation.y << " z: " <<orientation.z << std::endl;
-
-    //orientation.x += angularPitchVelocity * delta_t;
-    //orientation.y += angularYawVelocity * delta_t;
-
-   // std::cout << "Angular Pitch: " << angularPitchVelocity << ", Angular Yaw: " << angularYawVelocity << std::endl;
  
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();
 
 }
 
+
+/// <summary>
+/// Initialise the simulation
+/// </summary>
 void initialize_simulation (void)
   // Lander pose initialization - selects one of 10 possible scenarios
 {

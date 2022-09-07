@@ -171,12 +171,10 @@ int numberOfTextureRepeats = 100;
 int meshResolution = 10;
 
 //Texture
-textureObject lowResMars;
 
 GLUquadric* qobj;
 
-SquarePlaneMesh surfaceMesh;
-sphericalMesh closeUpPlanet;
+closeUpMeshes closeUpMeshObjects;
 sphericalMesh orbitalPlanet;
 
 
@@ -219,9 +217,6 @@ extern bool startOnSurface;
 #endif
 
 // Function prototypes for definition in lander_graphics
-void invert (double m[], double mout[]);
-void xyz_euler_to_matrix (Eigen::Vector3d ang, double m[]);
-Eigen::Vector3d matrix_to_xyz_euler (double m[]);
 void normalize_quat (quat_t &q);
 quat_t axis_to_quat (Eigen::Vector3d a, const double phi);
 double project_to_sphere (const double r, const double x, const double y);
@@ -272,5 +267,4 @@ void loadOrbitalTextures(textureObject& orbital);
 void buildPlanarMesh(int numTextureRepeats, int meshResolution, std::vector<Eigen::Vector2d>& vertices,
 	std::vector<std::vector<int>>& indices, std::vector<Eigen::Vector2d>& texCoords);
 void getPositionalUVCoordinates(double &u, double &v);
-void buildLevelsOfDetail(int meshResolution, int numberOfLODs, std::vector<std::vector<int>>& indices);
 #endif

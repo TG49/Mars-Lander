@@ -9,8 +9,13 @@
 #include "stb_image.h"
 
 
-
-void SquarePlaneMesh::buildSquarePlane(int meshResolutionIn, int numberOfTextureRepeatsIn, double sizeIn, std::string filename) {
+/// <summary>
+/// Function Builds and occupies a Square Plane Mesh Object
+/// </summary>
+/// <param name="meshResolutionIn">The resolution of the mesh. The number of vertices is pow(2,meshResolutionIn)</param>
+/// <param name="numberOfTextureRepeatsIn">How many times the texture should be repeated over the mesh</param>
+/// <param name="sizeIn">Half the side length of the mesh</param>
+void SquarePlaneMesh::buildSquarePlane(int meshResolutionIn, int numberOfTextureRepeatsIn, double sizeIn) {
    
     meshResolution = meshResolutionIn;
     size = sizeIn;
@@ -18,10 +23,12 @@ void SquarePlaneMesh::buildSquarePlane(int meshResolutionIn, int numberOfTexture
 
     loadVertices();
     loadIndices();
-    loadTexture(filename);
 
 }
 
+/// <summary>
+/// Occupy the vertex and texture coordinate members
+/// </summary>
 void SquarePlaneMesh::loadVertices() {
     if (meshResolution >= 9) {
         meshResolution = 8;
@@ -49,6 +56,9 @@ void SquarePlaneMesh::loadVertices() {
     }
 }
 
+/// <summary>
+/// Occupy the indices vertex, including required levels of detail. Number of LoDs depends upon mesh resolution
+/// </summary>
 void SquarePlaneMesh::loadIndices() {
     indices.resize(LevelsOfDetail);
     for (int j = 0; j < indices.size(); j++)
@@ -65,18 +75,34 @@ void SquarePlaneMesh::loadIndices() {
     }
 }
 
-int SquarePlaneMesh::getSize() {
+/// <summary>
+/// Returns the size of a square plane mesh
+/// </summary>
+/// <returns>double</returns>
+double SquarePlaneMesh::getSize() {
     return size;
 }
 
+/// <summary>
+/// Returns mesh resolution of a square plane mesh
+/// </summary>
+/// <returns>int</returns>
 int SquarePlaneMesh::getmeshResolution() {
     return meshResolution;
 }
 
+/// <summary>
+/// Returns the number of times a texture is repeated
+/// </summary>
+/// <returns>int</returns>
 int SquarePlaneMesh::getTextureRepeats() {
     return textureRepeats;
 }
 
+/// <summary>
+/// Loads a texture associated with a square plane mesh. Can only be used if the square plane mesh is the only object in the glut window
+/// </summary>
+/// <param name="filename">The file name of the texture image</param>
 void SquarePlaneMesh::loadTexture(std::string filename) {
     filenameOfTexture = filename;
     int height, width, nrChannels;
@@ -98,6 +124,12 @@ void SquarePlaneMesh::loadTexture(std::string filename) {
     texture.setTextureObject(index, height, width, nrChannels);
 }
 
+/// <summary>
+/// Draws the sphere object
+/// </summary>
+/// <param name="radius">Radius of sphere</param>
+/// <param name="slices">Number of slices</param>
+/// <param name="stacks">Number of stacks</param>
 void sphericalMesh::drawSphere(double radius, int slices, int stacks) {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture.getIndex());
@@ -114,6 +146,10 @@ void sphericalMesh::drawSphere(double radius, int slices, int stacks) {
     gluDeleteQuadric(quad);
 }
 
+/// <summary>
+/// Loads texture associated with spherical mesh. Can only be used if the spherical mesh is the only object in a glut window
+/// </summary>
+/// <param name="filename">Filename of the texture to be used for the spherical mesh</param>
 void sphericalMesh::loadTexture(std::string filename) {
     filenameOfTexture = filename;
     int height, width, nrChannels;
@@ -123,8 +159,8 @@ void sphericalMesh::loadTexture(std::string filename) {
     glBindTexture(GL_TEXTURE_2D, index);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     if (data)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -135,10 +171,12 @@ void sphericalMesh::loadTexture(std::string filename) {
     texture.setTextureObject(index, height, width, nrChannels);
 }
 
-void sphericalMesh::buildSphereObject(std::string filename) {
-    loadTexture(filename);
-}
-
+/// <summary>
+/// Draws the square plane mesh
+/// </summary>
+/// <param name="terrainAngle">Angle of the terrain</param>
+/// <param name="altitude">altitude of lander above the terrain</param>
+/// <param name="transistionAltitude">Altitude which the mesh is first drawn. Used for determining which LoD to use</param>
 void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double transistionAltitude) {
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glBindTexture(GL_TEXTURE_2D, texture.getIndex());
@@ -150,7 +188,7 @@ void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double tran
     glBegin(GL_QUADS);
 
     int useLoD = 0;
-    std::cout << indices.size() << std::endl;
+    //std::cout << indices.size() << std::endl;
     //Use LoDs. Select which lod to use
     while (useLoD < indices.size()-1)
     {
@@ -162,7 +200,7 @@ void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double tran
             break;
         }
     }
-    std::cout << "Using LoD: " << useLoD << std::endl;
+    //std::cout << "Using LoD: " << useLoD << std::endl;
     for (int i = 0; i < indices[useLoD].size(); i++) {
         int toPlot = indices[useLoD][i];
         glTexCoord2d(textureCoordinates[toPlot][0], textureCoordinates[toPlot][1]);
@@ -173,4 +211,67 @@ void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double tran
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
+}
+
+/// <summary>
+/// Builds all objects and meshes in the close up view window
+/// </summary>
+/// <param name="meshResolutionIn">Resolution of the surface mesh</param>
+/// <param name="numberOfTextureRepeatsIn">Number of times the surface texture repeats</param>
+/// <param name="sizeIn">Size of the surface plane</param>
+/// <param name="planetTexture">Filename of the texture used for the planet</param>
+/// <param name="surfaceTexture">Filename of the texture used for the surface</param>
+void closeUpMeshes::buildcloseUpMeshes(int meshResolutionIn, int numberOfTextureRepeatsIn,
+    double sizeIn, std::string planetTexture, std::string surfaceTexture) {
+    
+    surfaceMesh.buildSquarePlane(meshResolutionIn, numberOfTextureRepeatsIn, sizeIn);
+
+    loadTextures(planetTexture, surfaceTexture);
+}
+
+/// <summary>
+/// Loads textures associated with all objects in the clsoe up view window. Must be used as OpenGL cannot deal with multiple texture generation calls per window. 
+/// </summary>
+/// <param name="planetTextureName">Filename of the planet texture</param>
+/// <param name="surfaceTextureName">Filename of the surface texture</param>
+void closeUpMeshes::loadTextures(std::string planetTextureName, std::string surfaceTextureName)
+{
+    
+    int height, width, nrChannels;
+    GLuint* index = new GLuint[2];
+    glGenTextures(2, index);
+
+    planet.filenameOfTexture = planetTextureName;
+    unsigned char* data = stbi_load(planet.filenameOfTexture.c_str(), &width, &height, &nrChannels, 0);
+    glBindTexture(GL_TEXTURE_2D, index[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    if (data)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    else
+        std::cout << "failed To Load Texture " << std::endl;
+    std::cout << "Close Up Texture Planet: " << index[0] << std::endl;
+    stbi_image_free(data);
+    planet.texture.setTextureObject(index[0], height, width, nrChannels);
+
+    surfaceMesh.filenameOfTexture = surfaceTextureName;
+    unsigned char* data2 = stbi_load(surfaceMesh.filenameOfTexture.c_str(), &width, &height, &nrChannels, 0);
+    glBindTexture(GL_TEXTURE_2D, index[1]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    if (data2)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
+    else
+        std::cout << "failed To Load Texture " << std::endl;
+
+    std::cout << "Close Up Texture Surface: " << index[1] << std::endl;
+    stbi_image_free(data2);
+    surfaceMesh.texture.setTextureObject(index[1], height, width, nrChannels);
+    delete[] index;
 }

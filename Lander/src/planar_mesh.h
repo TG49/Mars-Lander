@@ -3,10 +3,12 @@
 #include "TextureObject.h"
 #include <string>
 
-
+/// <summary>
+/// Base class for mesh objects
+/// </summary>
 class mesh {
 public:
-	mesh() {};
+	mesh(int LoDs = 1) : LevelsOfDetail(LoDs) {}; //default constructor
 	virtual ~mesh() {};
 
 	//Getters
@@ -15,7 +17,6 @@ public:
 	std::vector<std::vector<int>> getIndices() { return indices; };
 	std::vector<Eigen::Vector2d> getVertices() { return vertices; };
 	std::vector<Eigen::Vector2d> getTextureCoordinates() { return textureCoordinates; }
-
 
 
 protected:
@@ -28,17 +29,21 @@ protected:
 	textureObject texture;
 };
 
+
+/// <summary>
+/// Class which handles square planar meshes
+/// </summary>
 class SquarePlaneMesh : public mesh {
 public:
-	SquarePlaneMesh() {};
+	SquarePlaneMesh(double size = 0, int meshResolution = 0, int textureRepeats=0) : size(size), meshResolution(meshResolution), textureRepeats(textureRepeats) {};
 	~SquarePlaneMesh() {};
 
 	//Getters
-	int getSize();
+	double getSize();
 	int getmeshResolution();
 	int getTextureRepeats();
 
-	void buildSquarePlane(int meshResolutionIn, int numberOfTextureRepeatsIn, double sizeIn, std::string filename);
+	void buildSquarePlane(int meshResolutionIn, int numberOfTextureRepeatsIn, double sizeIn);
 	void drawMesh(double terrainAngle, double altitude, double transistionAltitude);
 
 
@@ -52,15 +57,20 @@ private:
 	void loadIndices();
 	void loadTexture(std::string filename);
 
+	friend class closeUpMeshes;
+
 };
 
+/// <summary>
+/// Class which handles spherical meshes through the gluSphere function
+/// </summary>
 class sphericalMesh {
 public:
 	sphericalMesh() {};
 	~sphericalMesh() {};
 
 	void drawSphere(double radius, int slices, int stacks);
-	void buildSphereObject(std::string filename);
+	void loadTexture(std::string filename);
 
 
 protected:
@@ -68,6 +78,26 @@ protected:
 	std::string filenameOfTexture;
 
 private:
-	void loadTexture(std::string filename);
+	friend class closeUpMeshes;
 	
+};
+
+/// <summary>
+/// Class which handles all objects within the close up window 
+/// </summary>
+class closeUpMeshes {
+public:
+	closeUpMeshes() {};
+	~closeUpMeshes() {};
+
+	void buildcloseUpMeshes(int meshResolutionIn, int numberOfTextureRepeatsIn, 
+		double sizeIn, std::string planetTexture, std::string surfaceTexture);
+
+	sphericalMesh getPlanetObject() { return planet; };
+	SquarePlaneMesh getPlaneMesh() { return surfaceMesh; };
+
+protected:
+	void loadTextures(std::string planetTextureName, std::string surfaceTextureName);
+	sphericalMesh planet;
+	SquarePlaneMesh surfaceMesh;
 };
