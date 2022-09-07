@@ -168,7 +168,7 @@ bool alignToPosition;
 bool startOnSurface;
 int LoD;
 int numberOfTextureRepeats = 100;
-int meshResolution = 5;
+int meshResolution = 10;
 
 //Texture
 textureObject lowResMars;

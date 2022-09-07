@@ -1143,36 +1143,7 @@ void draw_closeup_window (void)
   }
 
   if (altitude < transition_altitude) {
-    // Draw ground plane below the lander's current position - we need to do this in quarters, with a vertex
-    // nearby, to get the fog calculations correct in all OpenGL implementations.
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, surfaceMesh.getTexture().getIndex());
-    if (do_texture) glEnable(GL_TEXTURE_2D);
-    glColor3f(1.0, 1.0, 1.0);
-    glNormal3d(0.0, 1.0, 0.0);
-    glPushMatrix();
-    glRotated(terrain_angle, 0.0, 1.0, 0.0);
-    glBegin(GL_QUADS);
-
-    int useLoD = 0;
-
-    //Use LoDs. Select which lod to use
-    while (useLoD < surfaceMesh.getIndices().size())
-    {
-        if (altitude > transition_altitude / (pow(1.4, useLoD))) { break; }
-        useLoD += 1;
-    }
-    cout << "Using LoD: " << useLoD << endl;
-    for (int i = 0; i < surfaceMesh.getIndices()[useLoD].size(); i++) {
-        int toPlot = surfaceMesh.getIndices()[useLoD][i];
-        glTexCoord2d(surfaceMesh.getTextureCoordinates()[toPlot][0], surfaceMesh.getTextureCoordinates()[toPlot][1]);
-        glVertex3d(surfaceMesh.getVertices()[toPlot][0], -altitude, surfaceMesh.getVertices()[toPlot][1]); //Draw Plane
-    }
-
-    glEnd();
-    glPopMatrix();
-   glDisable(GL_TEXTURE_2D);
-    glDisable(GL_DEPTH_TEST);
+      surfaceMesh.drawMesh(terrain_angle, altitude, transition_altitude);
 
     if (!do_texture) { // draw lines on the ground plane at constant x (to show ground speed)
       glEnable(GL_BLEND);

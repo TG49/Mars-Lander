@@ -138,3 +138,39 @@ void sphericalMesh::loadTexture(std::string filename) {
 void sphericalMesh::buildSphereObject(std::string filename) {
     loadTexture(filename);
 }
+
+void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double transistionAltitude) {
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glBindTexture(GL_TEXTURE_2D, texture.getIndex());
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0, 1.0, 1.0);
+    glNormal3d(0.0, 1.0, 0.0);
+    glPushMatrix();
+    glRotated(terrainAngle, 0.0, 1.0, 0.0);
+    glBegin(GL_QUADS);
+
+    int useLoD = 0;
+    std::cout << indices.size() << std::endl;
+    //Use LoDs. Select which lod to use
+    while (useLoD < indices.size()-1)
+    {
+        if (altitude < transistionAltitude/(pow(1.2,useLoD)))
+        {
+            useLoD += 1;
+        }
+        else {
+            break;
+        }
+    }
+    std::cout << "Using LoD: " << useLoD << std::endl;
+    for (int i = 0; i < indices[useLoD].size(); i++) {
+        int toPlot = indices[useLoD][i];
+        glTexCoord2d(textureCoordinates[toPlot][0], textureCoordinates[toPlot][1]);
+        glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]); //Draw Plane
+    }
+
+    glEnd();
+    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+}

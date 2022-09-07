@@ -39,7 +39,7 @@ public:
 	int getTextureRepeats();
 
 	void buildSquarePlane(int meshResolutionIn, int numberOfTextureRepeatsIn, double sizeIn, std::string filename);
-	
+	void drawMesh(double terrainAngle, double altitude, double transistionAltitude);
 
 
 protected:
