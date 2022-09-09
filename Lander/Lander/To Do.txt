@@ -12,9 +12,3 @@
 For noise:
 Define noise by the position of the vertex (vertex[0], 0, vertex[2]).
 Give a constant offset to this based upon the position vector.
-
-Could make a mesh class and inherit down for different types of meshes. e.g. base class has vertices, indices, textureCoords etc. 
-Child class then builds these accordingly in their constructors.
-https://stackoverflow.com/questions/61251452/how-to-add-texture-to-this-sphere
-
-	Would likely make adding a bump map to the orbital window much easier

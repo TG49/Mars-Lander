@@ -168,7 +168,7 @@ bool alignToPosition;
 bool startOnSurface;
 int LoD;
 int numberOfTextureRepeats = 100;
-int meshResolution = 10;
+int meshResolution = 7;
 
 //Texture
 

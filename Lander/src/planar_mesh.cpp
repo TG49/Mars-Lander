@@ -24,6 +24,9 @@ void SquarePlaneMesh::buildSquarePlane(int meshResolutionIn, int numberOfTexture
     loadVertices();
     loadIndices();
 
+    heightMap.buildHeightMap(0.001, 5, 0.5);
+
+
 }
 
 /// <summary>
@@ -177,7 +180,7 @@ void sphericalMesh::loadTexture(std::string filename) {
 /// <param name="terrainAngle">Angle of the terrain</param>
 /// <param name="altitude">altitude of lander above the terrain</param>
 /// <param name="transistionAltitude">Altitude which the mesh is first drawn. Used for determining which LoD to use</param>
-void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double transistionAltitude) {
+void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double transistionAltitude, Eigen::Vector3d position, double terrain_offset_x, double terrain_offset_y) {
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glBindTexture(GL_TEXTURE_2D, texture.getIndex());
     glEnable(GL_TEXTURE_2D);
@@ -187,24 +190,29 @@ void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double tran
     glRotated(terrainAngle, 0.0, 1.0, 0.0);
     glBegin(GL_QUADS);
 
-    int useLoD = 0;
+    int useLoD = indices.size()-1;
     //std::cout << indices.size() << std::endl;
     //Use LoDs. Select which lod to use
-    while (useLoD < indices.size()-1)
+    while (useLoD > 0)
     {
-        if (altitude < transistionAltitude/(pow(1.2,useLoD)))
+        if (altitude < transistionAltitude/(pow(1.5,(indices.size()-useLoD))))
         {
-            useLoD += 1;
+            useLoD -= 1;
         }
         else {
             break;
         }
     }
+    std::cout << "LoD: " << useLoD << std::endl;
     //std::cout << "Using LoD: " << useLoD << std::endl;
+    heightMap.setOffset(position);
+    std::cout << "Height Offset: " << heightMap.getOffset() << std::endl;
+    std::cout << "Texture Offsets: " << terrain_offset_x << ", " << terrain_offset_y << std::endl;
     for (int i = 0; i < indices[useLoD].size(); i++) {
         int toPlot = indices[useLoD][i];
-        glTexCoord2d(textureCoordinates[toPlot][0], textureCoordinates[toPlot][1]);
-        glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]); //Draw Plane
+        glTexCoord2d(textureCoordinates[toPlot][0] + terrain_offset_x, textureCoordinates[toPlot][1] + terrain_offset_y);
+        double height = heightMap.getHeightValue(vertices[toPlot], position);
+        glVertex3d(vertices[toPlot][0], -altitude + height, vertices[toPlot][1]); //Draw Plane
     }
 
     glEnd();
@@ -212,6 +220,43 @@ void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double tran
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
 }
+
+/// <summary>
+/// Builds the necessary Libnoise modules
+/// </summary>
+/// <param name="frequency">Frequency of perlin noise module</param>
+/// <param name="octaves">Octaves of Perlin Noise module</param>
+/// <param name="persistance">Peristance of Perlin Noise module</param>
+void terrainNoise::buildHeightMap(double frequency, double octaves, double persistance)
+{
+    positionOffset.SetFrequency(10);
+    positionOffset.SetOctaveCount(4);
+
+    heightModule.SetFrequency(frequency);
+    heightModule.SetOctaveCount(octaves);
+    heightModule.SetPersistence(persistance);
+}
+
+/// <summary>
+/// Sets the offset from the position vector magnitude
+/// </summary>
+/// <param name="position"></param>
+void terrainNoise::setOffset(Eigen::Vector3d position)
+{
+    offset = 1*positionOffset.GetValue(position.normalized()[0], position.normalized()[1], position.normalized()[2]);
+}
+
+/// <summary>
+/// Gets the height of individual vertices
+/// </summary>
+/// <param name="vertex">Vertex</param>
+/// <returns>The height of the vertex from the ground plane</returns>
+double terrainNoise::getHeightValue(Eigen::Vector2d vertex, Eigen::Vector3d position)
+{
+    return 400 * heightModule.GetValue(position[0] + vertex[0], position[0], position[2]+vertex[1]);
+
+}
+
 
 /// <summary>
 /// Builds all objects and meshes in the close up view window

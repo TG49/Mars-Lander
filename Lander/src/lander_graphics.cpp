@@ -1020,12 +1020,8 @@ void draw_closeup_window (void)
 
   // Update terrain texture/line offsets
   if (simulation_time != last_redraw_time) {
-    terrain_offset_x += cos(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
-    terrain_offset_y += sin(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
-    while (terrain_offset_x < 0.0) terrain_offset_x += 1.0;
-    while (terrain_offset_x >= 1.0) terrain_offset_x -= 1.0;
-    while (terrain_offset_y < 0.0) terrain_offset_y += 1.0;
-    while (terrain_offset_y >= 1.0) terrain_offset_y -= 1.0;
+    terrain_offset_x += 200 *cos(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
+    terrain_offset_y += 200 *sin(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
     if (closeup_coords.backwards) ground_line_offset += ground_speed * (simulation_time-last_redraw_time);
     else ground_line_offset -= ground_speed * (simulation_time-last_redraw_time);
     ground_line_offset -= GROUND_LINE_SPACING*((int)ground_line_offset/(int)(GROUND_LINE_SPACING));
@@ -1049,7 +1045,7 @@ void draw_closeup_window (void)
   }
 
   if (altitude < transition_altitude) {
-      closeUpMeshObjects.getPlaneMesh().drawMesh(terrain_angle, altitude, transition_altitude);
+      closeUpMeshObjects.getPlaneMesh().drawMesh(terrain_angle, altitude, transition_altitude, position , terrain_offset_x, terrain_offset_y);
 
     if (!do_texture) { // draw lines on the ground plane at constant x (to show ground speed)
       glEnable(GL_BLEND);
@@ -1063,7 +1059,7 @@ void draw_closeup_window (void)
 	// We need to do draw each line in two parts, with a vertex nearby, to get the fog calculations correct in all OpenGL implementations.
 	// To make the lines fade more strongly when landed, decrease the second number.
 	// To make the lines less apparent at high altitude, decrease the first number. 
-	f = exp( -fabs( pow((transition_altitude-altitude) / transition_altitude, 10.0) * tmp / (10.0*GROUND_LINE_SPACING)) );
+	f = exp( -fabs( pow((transition_altitude-altitude) / transition_altitude, 10.0) * tmp / (50.0*GROUND_LINE_SPACING)) );
 	glColor4f(0.32, 0.17, 0.11, f);
 	glVertex3d(tmp, -altitude, -transition_altitude);
 	glVertex3d(tmp, -altitude, 0.0);

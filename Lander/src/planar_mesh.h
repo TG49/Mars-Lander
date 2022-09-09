@@ -2,6 +2,7 @@
 #include <Eigen/Dense>
 #include "TextureObject.h"
 #include <string>
+#include "noise/noise.h"
 
 /// <summary>
 /// Base class for mesh objects
@@ -29,6 +30,26 @@ protected:
 	textureObject texture;
 };
 
+class terrainNoise {
+public:
+	terrainNoise(double frequency = 5, double octaves = 5, double persistance = 0.5) : frequency(frequency), octaves(octaves), persistance(persistance) {};
+	~terrainNoise() {};
+
+
+	void buildHeightMap(double frequency, double octaves, double persistance);
+	double getHeightValue(Eigen::Vector2d vertex, Eigen::Vector3d position);
+	void setOffset(Eigen::Vector3d position);
+	double getOffset() { return offset; }
+
+private:
+	noise::module::Perlin heightModule;
+	noise::module::Billow positionOffset;
+	double frequency;
+	double octaves;
+	double persistance;
+	double offset;
+};
+
 
 /// <summary>
 /// Class which handles square planar meshes
@@ -44,7 +65,7 @@ public:
 	int getTextureRepeats();
 
 	void buildSquarePlane(int meshResolutionIn, int numberOfTextureRepeatsIn, double sizeIn);
-	void drawMesh(double terrainAngle, double altitude, double transistionAltitude);
+	void drawMesh(double terrainAngle, double altitude, double transistionAltitude, Eigen::Vector3d position, double terrain_offset_x, double terrain_offset_y);
 
 
 protected:
@@ -52,10 +73,10 @@ protected:
 	int meshResolution;
 	int textureRepeats;
 	std::string filenameOfTexture;
-private:
 	void loadVertices();
 	void loadIndices();
 	void loadTexture(std::string filename);
+	terrainNoise heightMap;
 
 	friend class closeUpMeshes;
 
