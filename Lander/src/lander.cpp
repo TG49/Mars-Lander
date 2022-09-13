@@ -43,7 +43,11 @@ void numerical_dynamics (void)
     }
     else if (alignToVelocity) {
         AlignToVector(velocity);
-    } else{
+    }
+    else if (alignToNegativeVelocity) {
+        AlignToVector(-1 * velocity);
+    }
+    else{
         adjustAttitude();
     }
     //Euler();
@@ -81,6 +85,15 @@ void initialize_simulation (void)
 
   startOnSurface = false;
 
+  double geostationaryRadiusCubed = (MARS_DAY) * (MARS_DAY)*GRAVITY * MARS_MASS / (4 * M_PI * M_PI);
+  double geostationaryRadius = std::pow(geostationaryRadiusCubed, 1.0 / 3.0);
+  double geostationaryVelocityMagnitude = std::sqrt(GRAVITY * MARS_MASS / geostationaryRadius);
+
+  alignToVelocity = false;
+  alignToPosition = false;
+  alignToNegativeVelocity = false;
+  autopilot_enabled = false;
+
   switch (scenario) {
 
   case 0:
@@ -90,9 +103,6 @@ void initialize_simulation (void)
     orientation = Eigen::Vector3d(0.0, 90.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    alignToVelocity = false;
-    alignToPosition = false;
-    autopilot_enabled = false;
     break;
 
   case 1:
@@ -102,9 +112,6 @@ void initialize_simulation (void)
     orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    alignToVelocity = false;
-    alignToPosition = false;
-    autopilot_enabled = false;
     break;
 
   case 2:
@@ -114,9 +121,6 @@ void initialize_simulation (void)
     orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    alignToVelocity = false;
-    alignToPosition = false;
-    autopilot_enabled = false;
     break;
 
   case 3:
@@ -127,9 +131,6 @@ void initialize_simulation (void)
     orientation = Eigen::Vector3d(0.0, 0.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    alignToVelocity = false;
-    alignToPosition = true;
-    autopilot_enabled = false;
     break;
 
   case 4:
@@ -139,9 +140,6 @@ void initialize_simulation (void)
     orientation = Eigen::Vector3d(0.0, 90.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    alignToVelocity = false;
-    alignToPosition = false;
-    autopilot_enabled = false;
     break;
 
   case 5:
@@ -151,16 +149,16 @@ void initialize_simulation (void)
     orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    alignToVelocity = false;
-    alignToPosition = false;
-    autopilot_enabled = false;
     break;
 
   case 6:
-    break;
+    // A Geostationary orbit
 
-  case 7:
-    break;
+      position = Eigen::Vector3d(geostationaryRadius, 0, 0);
+      velocity = Eigen::Vector3d(0, geostationaryVelocityMagnitude, 0);
+      orientation = Eigen::Vector3d(0.0, 90.0, 0.0);
+      delta_t = 0.1;
+      parachute_status = NOT_DEPLOYED;
 
   case 8:
     break;

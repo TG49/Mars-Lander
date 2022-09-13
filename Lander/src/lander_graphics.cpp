@@ -1900,6 +1900,7 @@ void glut_key (unsigned char k, int x, int y)
     // y or Y - attitude stabilizer
     if (!autopilot_enabled && !landed) alignToPosition = !alignToPosition;
     alignToVelocity = false;
+    alignToNegativeVelocity = false;
     if (!alignToPosition) {
         Eigen::Matrix4d StabilizedOrientation = Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0);
         rotQuat = StabilizedOrientation.block<3,3>(0,0);
@@ -1940,16 +1941,29 @@ void glut_key (unsigned char k, int x, int y)
     paused = true;
     break;
     
-  case 'v' : case 'V':
+  case 'v':
       //v or V - align with orbital velocity
       if (!autopilot_enabled && !landed) alignToVelocity = !alignToVelocity;
       alignToPosition = false;
+      alignToNegativeVelocity = false;
       if (!alignToVelocity) {
           Eigen::Matrix4d StabilizedOrientation = Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0);
           rotQuat = StabilizedOrientation.block<3, 3>(0, 0);
       }
       if (paused) refresh_all_subwindows();
       break;
+
+  case 'V':
+      if (!autopilot_enabled && !landed) alignToNegativeVelocity = !alignToNegativeVelocity;
+      alignToPosition = false;
+      alignToVelocity = false;
+      if (!alignToVelocity) {
+          Eigen::Matrix4d StabilizedOrientation = Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0);
+          rotQuat = StabilizedOrientation.block<3, 3>(0, 0);
+      }
+      if (paused) refresh_all_subwindows();
+      break;
+
 
 
   }

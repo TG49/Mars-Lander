@@ -165,6 +165,7 @@ bool Initialised;
 Eigen::Quaterniond rotQuat;
 bool alignToVelocity;
 bool alignToPosition;
+bool alignToNegativeVelocity;
 bool startOnSurface;
 int LoD;
 int numberOfTextureRepeats = 100;
@@ -204,6 +205,7 @@ extern double angularPitchVelocity;
 extern double angularYawVelocity;
 extern bool alignToVelocity;
 extern bool alignToPosition;
+extern bool alignToNegativeVelocity;
 extern bool startOnSurface;
 
 #endif
