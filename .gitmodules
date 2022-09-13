@@ -1,3 +1,4 @@
 [submodule "Lander/Includes"]
 	path = Lander/Includes
 	url = https://github.com/TG49/Includes.git
+	branch = projects/mars_lander
