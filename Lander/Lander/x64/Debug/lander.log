@@ -1,6 +1,4 @@
-﻿  extension.cpp
-  lander.cpp
-  lander_graphics.cpp
+﻿  lander_graphics.cpp
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(322,43): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(415,44): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(415,19): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
@@ -80,44 +78,17 @@ C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\land
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(800,108): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(800,77): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(800,45): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(951,21): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(951,46): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(951,71): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(952,39): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(952,29): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(952,19): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(984,28): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1067,30): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1067,31): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1080,33): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1242,41): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1242,20): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-  planar_mesh.cpp
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(42,25): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(45,13): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(46,13): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(66,22): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(69,57): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=int
-          ]
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(70,61): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=int
-          ]
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(71,74): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=int
-          ]
-C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\planar_mesh.cpp(72,70): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=int
-          ]
-  TextureObject.cpp
-  Generating Code...
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(952,21): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(952,46): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(952,71): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(953,39): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(953,29): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(953,19): warning C4244: 'argument': conversion from 'double' to 'GLclampf', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(985,28): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1068,30): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1068,31): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1081,33): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1243,41): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1243,20): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
   lander.vcxproj -> C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\x64\Debug\lander.exe
           1 file(s) copied.

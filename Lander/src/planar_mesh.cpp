@@ -177,7 +177,7 @@ void sphericalMesh::loadTexture(std::string filename) {
 /// <param name="terrainAngle">Angle of the terrain</param>
 /// <param name="altitude">altitude of lander above the terrain</param>
 /// <param name="transistionAltitude">Altitude which the mesh is first drawn. Used for determining which LoD to use</param>
-void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double transistionAltitude) {
+void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double transistionAltitude, double textureOffsetX, double textureOffsetY) {
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glBindTexture(GL_TEXTURE_2D, texture.getIndex());
     glEnable(GL_TEXTURE_2D);
@@ -203,7 +203,7 @@ void SquarePlaneMesh::drawMesh(double terrainAngle, double altitude, double tran
     //std::cout << "Using LoD: " << useLoD << std::endl;
     for (int i = 0; i < indices[useLoD].size(); i++) {
         int toPlot = indices[useLoD][i];
-        glTexCoord2d(textureCoordinates[toPlot][0], textureCoordinates[toPlot][1]);
+        glTexCoord2d(textureCoordinates[toPlot][0] + textureOffsetX, textureCoordinates[toPlot][1]+textureOffsetY);
         glVertex3d(vertices[toPlot][0], -altitude, vertices[toPlot][1]); //Draw Plane
     }
 

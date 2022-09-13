@@ -44,7 +44,7 @@ public:
 	int getTextureRepeats();
 
 	void buildSquarePlane(int meshResolutionIn, int numberOfTextureRepeatsIn, double sizeIn);
-	void drawMesh(double terrainAngle, double altitude, double transistionAltitude);
+	void drawMesh(double terrainAngle, double altitude, double transistionAltitude, double terrainOffsetX, double terrainOffsetY);
 
 
 protected:

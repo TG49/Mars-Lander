@@ -924,6 +924,7 @@ void update_closeup_coords (void)
 void draw_closeup_window (void)
   // Draws the close-up view of the lander
 {
+    glEnable(GL_LINE_SMOOTH);
   static double terrain_offset_x = 0.0;
   static double terrain_offset_y = 0.0;
   static double ground_line_offset = 0.0;
@@ -1020,8 +1021,8 @@ void draw_closeup_window (void)
 
   // Update terrain texture/line offsets
   if (simulation_time != last_redraw_time) {
-    terrain_offset_x += cos(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
-    terrain_offset_y += sin(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
+    terrain_offset_x += 100* cos(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
+    terrain_offset_y += 100*sin(terrain_angle*M_PI/180.0) * ground_speed * (simulation_time-last_redraw_time) / (2.0*ground_plane_size);
     while (terrain_offset_x < 0.0) terrain_offset_x += 1.0;
     while (terrain_offset_x >= 1.0) terrain_offset_x -= 1.0;
     while (terrain_offset_y < 0.0) terrain_offset_y += 1.0;
@@ -1049,7 +1050,7 @@ void draw_closeup_window (void)
   }
 
   if (altitude < transition_altitude) {
-      closeUpMeshObjects.getPlaneMesh().drawMesh(terrain_angle, altitude, transition_altitude);
+      closeUpMeshObjects.getPlaneMesh().drawMesh(terrain_angle, altitude, transition_altitude, terrain_offset_x, terrain_offset_y);
 
     if (!do_texture) { // draw lines on the ground plane at constant x (to show ground speed)
       glEnable(GL_BLEND);
@@ -1246,6 +1247,7 @@ void draw_closeup_window (void)
     glEnable(GL_LIGHTING);
   }
 
+  glDisable(GL_LINE_SMOOTH);
   glutSwapBuffers(); 
 }
 
