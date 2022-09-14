@@ -12,11 +12,14 @@ Eigen::Vector3d updateThrustVector(double& mass);
 Eigen::Vector3d updateDragVector(double& mass);
 
 
-
 void updateMass(double& mass);
 void Euler();
 void Verlet();
 void adjustAttitude();
+
+bool parachuteSafeToDeploy(double altitude);
+double findAutopilotThrottle();
+
 
 Eigen::Matrix4d quaternionRotationMatrix(double pitch, double yaw, double roll, std::vector<Eigen::Vector3d> axes);
 

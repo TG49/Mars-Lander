@@ -6,8 +6,7 @@
 /// </summary>
 /// <returns>Eigen::Vector3d acceleration vector</returns>
 Eigen::Vector3d updateGravitationVector() {
-    double distance = position.squaredNorm();
-    return (-1 * GRAVITY * MARS_MASS / distance) * position.normalized();
+    return (-1 * GRAVITY * MARS_MASS / position.squaredNorm()) * position.normalized();
 }
 
 /// <summary>
@@ -155,5 +154,52 @@ void adjustAttitude()
         //Save the rotaiton matrix to the rotationArray, which is used by openGL for visualisation
     }
     Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0) = rotMatrix4x4;
+
+}
+
+bool parachuteSafeToDeploy(double altitude) {
+    double atmosphericDensity = atmospheric_density(position);
+    double drag = ((0.5) * atmosphericDensity * DRAG_COEF_CHUTE * NUM_CHUTES * parachuteArea * velocity.squaredNorm() * velocity.normalized()).norm();
+
+    if ((drag < MAX_PARACHUTE_DRAG) && (velocity.norm() < MAX_PARACHUTE_SPEED) && (altitude < 20000))
+    {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+double findAutopilotThrottle()
+{
+    double altitude = position.norm() - MARS_RADIUS;
+    double desiredVelocity = -(0.5 + Kh * altitude);
+    double error = desiredVelocity - velocity.dot(position.normalized());
+
+    double Power = Kp * error;
+
+    delta =   mass * (updateGravitationVector().norm() - updateDragVector(mass).norm()) / MAX_THRUST;
+
+    if (parachuteSafeToDeploy(altitude) && useParachuteInAutopilot)
+    {
+        parachute_status = DEPLOYED;
+    }
+
+    cout << "altitude: " << altitude << endl;
+    cout << "Desired Velocity: " << desiredVelocity << endl;
+    cout << "Error: " << error << endl;
+    cout << "Power: " << Power << endl;
+    cout << "Delta " << delta << endl;
+    if (Power < -delta) {
+        cout << 0.0 << endl << endl << endl;
+        return 0.0;
+    }
+    else if (Power > 1.0 - delta) {
+        cout << 1.0 << endl << endl << endl;
+        return 1.0;
+    }
+    else {
+        cout << delta+Power << endl << endl << endl;
+        return delta + Power;
+    }
 
 }

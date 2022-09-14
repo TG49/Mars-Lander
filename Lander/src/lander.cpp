@@ -26,7 +26,7 @@
 void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
-  // INSERT YOUR CODE HERE
+    throttle = findAutopilotThrottle();
 }
 
 
@@ -37,19 +37,21 @@ void numerical_dynamics (void)
   // This is the function that performs the numerical integration to update the
   // lander's pose. The time step is delta_t (global variable).
 {
+    if (!autopilot_enabled) {
+        if (alignToPosition) {
+            AlignToVector(position);
+        }
+        else if (alignToVelocity) {
+            AlignToVector(velocity);
+        }
+        else if (alignToNegativeVelocity) {
+            AlignToVector(-1 * velocity);
+        }
+        else {
+            adjustAttitude();
+        }
+    }
 
-    if (alignToPosition){
-        AlignToVector(position);
-    }
-    else if (alignToVelocity) {
-        AlignToVector(velocity);
-    }
-    else if (alignToNegativeVelocity) {
-        AlignToVector(-1 * velocity);
-    }
-    else{
-        adjustAttitude();
-    }
     //Euler();
     Verlet();
  
@@ -78,7 +80,7 @@ void initialize_simulation (void)
   scenario_description[3] = "polar launch at escape velocity (but drag prevents escape)";
   scenario_description[4] = "elliptical orbit that clips the atmosphere and decays";
   scenario_description[5] = "descent from 200km";
-  scenario_description[6] = "";
+  scenario_description[6] = "Geosynchronous Orbit";
   scenario_description[7] = "";
   scenario_description[8] = "";
   scenario_description[9] = "";

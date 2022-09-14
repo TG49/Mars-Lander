@@ -80,7 +80,7 @@
 #define LANDER_SIZE 1.0 // (m)
 #define UNLOADED_LANDER_MASS 100.0 // (kg)
 #define FUEL_CAPACITY 100.0 // (l)
-#define FUEL_RATE_AT_MAX_THRUST 0.01 // (l/s)
+#define FUEL_RATE_AT_MAX_THRUST 0.5 // (l/s)
 #define FUEL_DENSITY 1.0 // (kg/l)
 #define NUM_CHUTES 5.0
 // MAX_THRUST, as defined below, is 1.5 * weight of fully loaded lander at surface
@@ -163,6 +163,7 @@ double angularYawVelocity;
 double rotationArray[16];
 bool Initialised;
 Eigen::Quaterniond rotQuat;
+bool useParachuteInAutopilot;
 bool alignToVelocity;
 bool alignToPosition;
 bool alignToNegativeVelocity;
@@ -216,6 +217,13 @@ extern bool startOnSurface;
 	extern double rotationArray[16];
 	extern bool Initialised;
 	extern Eigen::Quaterniond rotQuat;
+	extern bool useParachuteInAutopilot;
+
+	double Kh = 0.03;
+	double Kp = 1.0;
+	double delta = 1.0;
+	double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
+
 #endif
 
 // Function prototypes for definition in lander_graphics
