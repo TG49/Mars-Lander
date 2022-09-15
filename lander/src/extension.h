@@ -19,6 +19,7 @@ void adjustAttitude();
 
 bool parachuteSafeToDeploy(double altitude);
 double findAutopilotThrottle();
+double desiredVelocity(double altitude);
 
 
 Eigen::Matrix4d quaternionRotationMatrix(double pitch, double yaw, double roll, std::vector<Eigen::Vector3d> axes);

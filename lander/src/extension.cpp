@@ -59,6 +59,8 @@ Eigen::Vector3d updateAccelerationVector(double& mass) {
     Eigen::Vector3d thrust = updateThrustVector(mass);
     Eigen::Vector3d drag = updateDragVector(mass);
 
+    //cout << "G force: " << (thrust + drag).norm() / 9.81 << endl;
+
     return gravitation + thrust + drag;
 }
 
@@ -156,8 +158,13 @@ void adjustAttitude()
     Eigen::Map<Eigen::Matrix4d>(rotationArray, 0, 0) = rotMatrix4x4;
 
 }
-
-bool parachuteSafeToDeploy(double altitude) {
+/// <summary>
+/// Determines if it is safe to deploy the parachute, when using the parachute autopilot
+/// </summary>
+/// <param name="altitude">Current Altitude</param>
+/// <returns>bool safe</returns>
+bool parachuteSafeToDeploy(double altitude) 
+{
     double atmosphericDensity = atmospheric_density(position);
     double drag = ((0.5) * atmosphericDensity * DRAG_COEF_CHUTE * NUM_CHUTES * parachuteArea * velocity.squaredNorm() * velocity.normalized()).norm();
 
@@ -169,11 +176,36 @@ bool parachuteSafeToDeploy(double altitude) {
         return false;
     }
 }
+
+/// <summary>
+/// Determines the optimal velocity at any altitude above the surface of the planet
+/// </summary>
+/// <param name="altitude">altitude</param>
+/// <returns>double velocity</returns>
+double desiredVelocity(double altitude) 
+{
+    if (altitude < 2000) {
+        return -(0.5 + 2.6 * Kh * altitude);
+    }
+    else if (altitude < 15000) {
+        return -(Kh * altitude);
+    }
+    else if ((altitude > 50000)) {
+        return -0.38 * Kh * altitude;
+    }
+    else {
+        return -(Kh * altitude);
+    }
+}
+
+/// <summary>
+/// Determines the appropriate throttle for the autopliot
+/// </summary>
+/// <returns>double throttle</returns>
 double findAutopilotThrottle()
 {
     double altitude = position.norm() - MARS_RADIUS;
-    double desiredVelocity = -(0.5 + Kh * altitude);
-    double error = desiredVelocity - velocity.dot(position.normalized());
+    double error = desiredVelocity(altitude) - velocity.dot(position.normalized());
 
     double Power = Kp * error;
 
@@ -184,21 +216,21 @@ double findAutopilotThrottle()
         parachute_status = DEPLOYED;
     }
 
-    cout << "altitude: " << altitude << endl;
-    cout << "Desired Velocity: " << desiredVelocity << endl;
+    /*cout << "altitude: " << altitude << endl;
+    cout << "Desired Velocity: " << desiredVelocity(altitude) << endl;
     cout << "Error: " << error << endl;
     cout << "Power: " << Power << endl;
-    cout << "Delta " << delta << endl;
+    cout << "Delta " << delta << endl;*/
     if (Power < -delta) {
-        cout << 0.0 << endl << endl << endl;
+       // cout << 0.0 << endl << endl << endl;
         return 0.0;
     }
     else if (Power > 1.0 - delta) {
-        cout << 1.0 << endl << endl << endl;
+       // cout << 1.0 << endl << endl << endl;
         return 1.0;
     }
     else {
-        cout << delta+Power << endl << endl << endl;
+       // cout << delta+Power << endl << endl << endl;
         return delta + Power;
     }
 

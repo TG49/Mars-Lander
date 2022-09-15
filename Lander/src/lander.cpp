@@ -37,7 +37,6 @@ void numerical_dynamics (void)
   // This is the function that performs the numerical integration to update the
   // lander's pose. The time step is delta_t (global variable).
 {
-    if (!autopilot_enabled) {
         if (alignToPosition) {
             AlignToVector(position);
         }
@@ -50,7 +49,6 @@ void numerical_dynamics (void)
         else {
             adjustAttitude();
         }
-    }
 
     //Euler();
     Verlet();
@@ -81,7 +79,7 @@ void initialize_simulation (void)
   scenario_description[4] = "elliptical orbit that clips the atmosphere and decays";
   scenario_description[5] = "descent from 200km";
   scenario_description[6] = "Geosynchronous Orbit";
-  scenario_description[7] = "";
+  scenario_description[7] = "High Altitude Vertical Descent. Maximum landable alitude with current autopilot";
   scenario_description[8] = "";
   scenario_description[9] = "";
 
@@ -154,16 +152,31 @@ void initialize_simulation (void)
     break;
 
   case 6:
-    // A Geostationary orbit
+      // A Geostationary orbit
 
       position = Eigen::Vector3d(geostationaryRadius, 0, 0);
       velocity = Eigen::Vector3d(0, geostationaryVelocityMagnitude, 0);
       orientation = Eigen::Vector3d(0.0, 90.0, 0.0);
       delta_t = 0.1;
       parachute_status = NOT_DEPLOYED;
+      break;
+  case 7:
+      //High Altitude Vertical Descent. Maximum landable alitude with current autopilot
+      position = Eigen::Vector3d(0.0, -(MARS_RADIUS +605000), 0.0);
+      velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
+      orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
+      delta_t = 0.1;
+      parachute_status = NOT_DEPLOYED;
+      break;
 
   case 8:
-    break;
+      //High Altitude Vertical Descent. Maximum landable alitude with current autopilot
+      position = Eigen::Vector3d(0.0, -(MARS_RADIUS + 1260000), 0.0);
+      velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
+      orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
+      delta_t = 0.1;
+      parachute_status = NOT_DEPLOYED;
+      break;
 
   case 9:
     break;

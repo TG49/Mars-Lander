@@ -1860,18 +1860,18 @@ void glut_key (unsigned char k, int x, int y)
     // m - autopilot with no parachute
     if (!landed) autopilot_enabled = !autopilot_enabled;
     if (paused) refresh_all_subwindows();
-    alignToPosition = true;
+    alignToPosition = false;
     alignToVelocity = false;
-    alignToNegativeVelocity = false;
+    alignToNegativeVelocity = true;
     useParachuteInAutopilot = false;
     break;
   case 'M':
     // M - Autopilot with parachute
     if (!landed) autopilot_enabled = !autopilot_enabled;
     if (paused) refresh_all_subwindows();
-    alignToPosition = true;
+    alignToPosition = false;
     alignToVelocity = false;
-    alignToNegativeVelocity = false;
+    alignToNegativeVelocity = true;
     useParachuteInAutopilot = true;
     break;
   case 'h': case 'H':

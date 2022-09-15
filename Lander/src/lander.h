@@ -169,7 +169,7 @@ bool alignToPosition;
 bool alignToNegativeVelocity;
 bool startOnSurface;
 int LoD;
-int numberOfTextureRepeats = 100;
+int numberOfTextureRepeats = 400;
 int meshResolution = 10;
 
 //Texture
@@ -219,7 +219,7 @@ extern bool startOnSurface;
 	extern Eigen::Quaterniond rotQuat;
 	extern bool useParachuteInAutopilot;
 
-	double Kh = 0.03;
+	double Kh = 0.027;
 	double Kp = 1.0;
 	double delta = 1.0;
 	double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
