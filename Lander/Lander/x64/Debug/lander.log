@@ -93,5 +93,6 @@ C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\land
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1243,41): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
 C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\src\lander_graphics.cpp(1243,20): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
   Generating Code...
+  LINK : C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\x64\Debug\lander.exe not found or not built by the last incremental link; performing full link
   lander.vcxproj -> C:\Users\toman\OneDrive - University of Cambridge\IA\Mars-Lander\Lander\x64\Debug\lander.exe
           1 file(s) copied.
