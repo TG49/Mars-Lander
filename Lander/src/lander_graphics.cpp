@@ -2006,9 +2006,6 @@ void getPositionalUVCoordinates(double& u, double& v) {
 int main (int argc, char* argv[])
   // Initializes GLUT windows and lander state, then enters GLUT main loop
 {
-    //Wipe the txt output file
-    std::ofstream outputFile = std::ofstream("output.txt", std::ios_base::out);
-    outputFile.close();
 
   /****************************************************
   * GLUT Main Window

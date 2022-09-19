@@ -224,6 +224,8 @@ extern bool startOnSurface;
 	double delta = 1.0;
 	double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
 
+	bool logTelemetryData = true;
+
 #endif
 
 // Function prototypes for definition in lander_graphics
