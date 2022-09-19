@@ -207,6 +207,14 @@ double findAutopilotThrottle()
     double altitude = position.norm() - MARS_RADIUS;
     double error = desiredVelocity(altitude) - velocity.dot(position.normalized());
 
+    std::fstream outputForVisualisation;
+    outputForVisualisation.open("output.txt", std::ios_base::app);
+    outputForVisualisation << altitude << endl;
+    outputForVisualisation << -desiredVelocity(altitude) << endl;
+    outputForVisualisation << velocity.norm() << endl;
+    outputForVisualisation.close();
+
+
     double Power = Kp * error;
 
     delta =   mass * (updateGravitationVector().norm() - updateDragVector(mass).norm()) / MAX_THRUST;

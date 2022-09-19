@@ -79,8 +79,8 @@ void initialize_simulation (void)
   scenario_description[4] = "elliptical orbit that clips the atmosphere and decays";
   scenario_description[5] = "descent from 200km";
   scenario_description[6] = "Geosynchronous Orbit";
-  scenario_description[7] = "High Altitude Vertical Descent. Maximum landable alitude with current autopilot";
-  scenario_description[8] = "";
+  scenario_description[7] = "High Altitude Vertical Descent. Maximum landable alitude with current no parachute autopilot";
+  scenario_description[8] = "High Altitude Vertical Descent. Maximum landable alitude with current parachute autopilot";
   scenario_description[9] = "";
 
   startOnSurface = false;
