@@ -53,7 +53,7 @@ Eigen::Vector3d updateDragVector(double& mass) {
 /// </summary>
 /// <param name="mass">mass of craft</param>
 /// <returnsEigen::Vector3d >Acceleration Vector</returns>
-Eigen::Vector3d updateAccelerationVector(double& mass) {
+Eigen::Vector3d updateAccelerationVector() {
     updateMass(mass);
     Eigen::Vector3d gravitation = updateGravitationVector();
     Eigen::Vector3d thrust = updateThrustVector(mass);
@@ -69,7 +69,7 @@ Eigen::Vector3d updateAccelerationVector(double& mass) {
 /// </summary>
 void Euler() {
     static double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
-    Eigen::Vector3d acceleration = updateAccelerationVector(mass);
+    Eigen::Vector3d acceleration = updateAccelerationVector();
     position = position + velocity * delta_t;
     velocity = velocity + acceleration * delta_t;
 }
@@ -80,7 +80,7 @@ void Euler() {
 void Verlet() {
     static double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
     static std::vector<Eigen::Vector3d> previousStates(2);
-    Eigen::Vector3d acceleration = updateAccelerationVector(mass);
+    Eigen::Vector3d acceleration = updateAccelerationVector();
     if (simulation_time == 0) {
         previousStates[0] = position;
         position = position + velocity * delta_t;
@@ -243,6 +243,10 @@ double findAutopilotThrottle()
 
 }
 
+/// <summary>
+/// Logs Telemetry Data from the spacecraft
+/// </summary>
+/// <param name="altitude">current altitude</param>
 void logTelemetry(double altitude) {
    
     if (logTelemetryData)
@@ -262,7 +266,19 @@ void logTelemetry(double altitude) {
             altitudeInitial.close();
 
             std::ofstream targetVelInitial = std::ofstream("Telemetry/targetVel.txt", std::ios_base::out);
-            simulationTimeInitial.close();
+            targetVelInitial.close();
+
+            std::ofstream thrustInitial = std::ofstream("Telemetry/thrust.txt", std::ios_base::out);
+            thrustInitial.close();
+
+            std::ofstream fuelInitial = std::ofstream("Telemetry/fuel.txt", std::ios_base::out);
+            fuelInitial.close();
+
+            std::ofstream gforceInitial = std::ofstream("Telemetry/gforce.txt", std::ios_base::out);
+            gforceInitial.close();
+
+            std::ofstream massInitial = std::ofstream("Telemetry/mass.txt", std::ios_base::out);
+            massInitial.close();
 
             telemetryInitialised = true;
 
@@ -274,16 +290,28 @@ void logTelemetry(double altitude) {
         std::ofstream simulationTimeOut = std::ofstream("Telemetry/simtime.txt", std::ios_base::app);
         std::ofstream altitudeOut = std::ofstream("Telemetry/altitude.txt", std::ios_base::app);
         std::ofstream targetVelOut = std::ofstream("Telemetry/targetVel.txt", std::ios_base::app);
+        std::ofstream thrustOut = std::ofstream("Telemetry/thrust.txt", std::ios_base::app);
+        std::ofstream fuelOut = std::ofstream("Telemetry/fuel.txt", std::ios_base::app);
+        std::ofstream gforceOut = std::ofstream("Telemetry/gforce.txt", std::ios_base::app);
+        std::ofstream massOut = std::ofstream("Telemetry/mass.txt", std::ios_base::app);
 
         velocityOut << velocity.norm() << endl;
         simulationTimeOut << simulation_time - initialSimulationTime << endl;
         altitudeOut << altitude << endl;
         targetVelOut << -desiredVelocity(altitude) << endl;
+        thrustOut << thrust_wrt_world().norm() << endl;
+        fuelOut << fuel << endl;
+        gforceOut << (updateThrustVector(mass) + updateDragVector(mass)).norm() / 9.81 << endl;
+        massOut << mass << endl;
 
         velocityOut.close();
         simulationTimeOut.close();
         altitudeOut.close();
         targetVelOut.close();
+        thrustOut.close();
+        fuelOut.close();
+        gforceOut.close();
+        massOut.close();
     }
 
 }

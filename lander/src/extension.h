@@ -6,7 +6,7 @@
 
 
 //Function Declarations for lander.cpp
-Eigen::Vector3d updateAccelerationVector(double& mass);
+Eigen::Vector3d updateAccelerationVector();
 Eigen::Vector3d updateGravitationVector();
 Eigen::Vector3d updateThrustVector(double& mass);
 Eigen::Vector3d updateDragVector(double& mass);
