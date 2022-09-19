@@ -171,6 +171,7 @@ bool startOnSurface;
 int LoD;
 int numberOfTextureRepeats = 400;
 int meshResolution = 10;
+bool telemetryInitialised;
 
 //Texture
 
@@ -209,6 +210,7 @@ extern bool alignToPosition;
 extern bool alignToNegativeVelocity;
 extern bool startOnSurface;
 
+
 #endif
 
 #ifdef EXTENSION
@@ -222,9 +224,9 @@ extern bool startOnSurface;
 	double Kh = 0.027;
 	double Kp = 1.0;
 	double delta = 1.0;
-	double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
-
 	bool logTelemetryData = true;
+	double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;;
+	extern bool telemetryInitialised;
 
 #endif
 

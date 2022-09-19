@@ -214,11 +214,6 @@ double findAutopilotThrottle()
     outputForVisualisation << velocity.norm() << endl;
     outputForVisualisation.close();
 
-    if (logTelemetryData)
-    {
-        logTelemetry(altitude);
-    }
-
     double Power = Kp * error;
 
     delta =   mass * (updateGravitationVector().norm() - updateDragVector(mass).norm()) / MAX_THRUST;
@@ -249,43 +244,46 @@ double findAutopilotThrottle()
 }
 
 void logTelemetry(double altitude) {
-    static bool TelemetryInitialised = false;
-    static double initialSimulationTime = 0;
-
-    if (!TelemetryInitialised)
+   
+    if (logTelemetryData)
     {
-        //Wipe the txt output file
-        std::ofstream velocityInitial = std::ofstream("Telemetry/velocity.txt", std::ios_base::out);
-        velocityInitial.close();
+        static double initialSimulationTime = 0;
 
-        std::ofstream simulationTimeInitial = std::ofstream("Telemetry/simtime.txt", std::ios_base::out);
-        simulationTimeInitial.close();
+        if (!telemetryInitialised)
+        {
+            //Wipe the txt output file
+            std::ofstream velocityInitial = std::ofstream("Telemetry/velocity.txt", std::ios_base::out);
+            velocityInitial.close();
 
-        std::ofstream altitudeInitial = std::ofstream("Telemetry/altitude.txt", std::ios_base::out);
-        altitudeInitial.close();
+            std::ofstream simulationTimeInitial = std::ofstream("Telemetry/simtime.txt", std::ios_base::out);
+            simulationTimeInitial.close();
 
-        std::ofstream targetVelInitial = std::ofstream("Telemetry/targetVel.txt", std::ios_base::out);
-        simulationTimeInitial.close();
+            std::ofstream altitudeInitial = std::ofstream("Telemetry/altitude.txt", std::ios_base::out);
+            altitudeInitial.close();
 
-        TelemetryInitialised = true;
+            std::ofstream targetVelInitial = std::ofstream("Telemetry/targetVel.txt", std::ios_base::out);
+            simulationTimeInitial.close();
 
-        initialSimulationTime = simulation_time;
+            telemetryInitialised = true;
 
+            initialSimulationTime = simulation_time;
+
+        }
+
+        std::ofstream velocityOut = std::ofstream("Telemetry/velocity.txt", std::ios_base::app);
+        std::ofstream simulationTimeOut = std::ofstream("Telemetry/simtime.txt", std::ios_base::app);
+        std::ofstream altitudeOut = std::ofstream("Telemetry/altitude.txt", std::ios_base::app);
+        std::ofstream targetVelOut = std::ofstream("Telemetry/targetVel.txt", std::ios_base::app);
+
+        velocityOut << velocity.norm() << endl;
+        simulationTimeOut << simulation_time - initialSimulationTime << endl;
+        altitudeOut << altitude << endl;
+        targetVelOut << -desiredVelocity(altitude) << endl;
+
+        velocityOut.close();
+        simulationTimeOut.close();
+        altitudeOut.close();
+        targetVelOut.close();
     }
-
-    std::ofstream velocityOut = std::ofstream("Telemetry/velocity.txt", std::ios_base::app);
-    std::ofstream simulationTimeOut = std::ofstream("Telemetry/simtime.txt", std::ios_base::app);
-    std::ofstream altitudeOut = std::ofstream("Telemetry/altitude.txt", std::ios_base::app);
-    std::ofstream targetVelOut = std::ofstream("Telemetry/targetVel.txt", std::ios_base::app);
-    
-    velocityOut << velocity.norm() << endl;
-    simulationTimeOut << simulation_time - initialSimulationTime << endl;
-    altitudeOut << altitude << endl;
-    targetVelOut << -desiredVelocity(altitude) << endl;
-    
-    velocityOut.close();
-    simulationTimeOut.close();
-    altitudeOut.close();
-    targetVelOut.close();
 
 }

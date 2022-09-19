@@ -52,6 +52,7 @@ void numerical_dynamics (void)
 
     //Euler();
     Verlet();
+    logTelemetry(position.norm() - MARS_RADIUS);
  
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();

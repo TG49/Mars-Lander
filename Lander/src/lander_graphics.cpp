@@ -1512,6 +1512,9 @@ void reset_simulation (void)
   // Restore initial lander state
   initialize_simulation();
 
+  //Reset Telemetry Logging
+  telemetryInitialised = false;
+
   //Reset orientation based parameters
   Initialised = false;
   rotQuat = Eigen::Quaterniond::Identity(); //Quaternion describing current orientation
