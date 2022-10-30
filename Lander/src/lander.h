@@ -84,7 +84,7 @@
 #define FUEL_DENSITY 1.0 // (kg/l)
 #define NUM_CHUTES 5.0
 // MAX_THRUST, as defined below, is 1.5 * weight of fully loaded lander at surface
-#define MAX_THRUST (1.5 * (FUEL_DENSITY*FUEL_CAPACITY+UNLOADED_LANDER_MASS) * (GRAVITY*MARS_MASS/(MARS_RADIUS*MARS_RADIUS))) // (N)
+#define MAX_THRUST (1.5*(FUEL_DENSITY*FUEL_CAPACITY+UNLOADED_LANDER_MASS) * (GRAVITY*MARS_MASS/(MARS_RADIUS*MARS_RADIUS))) // (N)
 #define ENGINE_LAG 0.0 // (s)
 #define ENGINE_DELAY 0.0 // (s)
 #define DRAG_COEF_CHUTE 2.0
@@ -221,9 +221,12 @@ extern bool startOnSurface;
 	extern Eigen::Quaterniond rotQuat;
 	extern bool useParachuteInAutopilot;
 
-	double Kh = 0.027;
-	double Kp = 1.0;
-	double delta = 1.0;
+	double Kh = 0.027; //0.027
+	double Kp = 0.01; //1.0
+	double kd = 0.01;
+	double delta = 1.0; //1.0
+	double H0 = MAX_THRUST;
+
 	bool logTelemetryData = true;
 	double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;;
 	extern bool telemetryInitialised;

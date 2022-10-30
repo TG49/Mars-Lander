@@ -243,6 +243,24 @@ double findAutopilotThrottle()
 
 }
 
+
+/// <summary>
+/// Determines the appropriate throttle for the autopliot
+/// </summary>
+/// <returns>double throttle</returns>
+double findAutopilotThrottleExamplePapers()
+{
+    double altitude = position.norm() - MARS_RADIUS;
+    double targetAltitude = 500.0;
+    double speed = velocity.norm();
+    float Fequilibrium = GRAVITY * MARS_MASS * mass / pow((MARS_RADIUS + targetAltitude), 2);
+
+    float error = altitude - targetAltitude;
+    return Fequilibrium / MAX_THRUST;
+
+}
+
+
 /// <summary>
 /// Logs Telemetry Data from the spacecraft
 /// </summary>

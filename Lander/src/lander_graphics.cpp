@@ -1978,9 +1978,6 @@ void glut_key (unsigned char k, int x, int y)
       }
       if (paused) refresh_all_subwindows();
       break;
-
-
-
   }
 }
 
@@ -2122,6 +2119,7 @@ int main (int argc, char* argv[])
   reset_simulation();
   microsecond_time(time_program_started);
 
+  useParachuteInAutopilot = false;
 
   glutMainLoop();
 }
