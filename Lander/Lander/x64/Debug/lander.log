@@ -1,6 +1,6 @@
 ﻿  extension.cpp
 C:\Users\toman\OneDrive - University of Cambridge\Mars-Lander\Lander\src\extension.cpp(256,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\toman\OneDrive - University of Cambridge\Mars-Lander\Lander\src\extension.cpp(258,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\toman\OneDrive - University of Cambridge\Mars-Lander\Lander\src\extension.cpp(257,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   lander.cpp
   lander_graphics.cpp
 C:\Users\toman\OneDrive - University of Cambridge\Mars-Lander\Lander\src\lander_graphics.cpp(322,43): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'

@@ -51,7 +51,8 @@ void numerical_dynamics (void)
         }
 
     //Euler();
-    Verlet();
+    //Verlet();
+    VerletExamplePapers();
     logTelemetry(position.norm() - MARS_RADIUS);
  
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
@@ -195,7 +196,7 @@ void initialize_simulation(void)
         autopilot_enabled = true;
         break;
     case 8:
-        //500m stationary
+        //510m stationary
         position = Eigen::Vector3d(0.0, -(MARS_RADIUS + 510.0), 0.0);
         velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
         orientation = Eigen::Vector3d(0.0, 0.0, 90.0);
@@ -204,7 +205,7 @@ void initialize_simulation(void)
         autopilot_enabled = true;
         break;
     case 9:
-        //500m stationary
+        //700m stationary
         position = Eigen::Vector3d(0.0, -(MARS_RADIUS + 700.0), 0.0);
         velocity = Eigen::Vector3d(0.0, 0.0, 0.0);
         orientation = Eigen::Vector3d(0.0, 0.0, 90.0);

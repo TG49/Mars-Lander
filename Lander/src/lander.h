@@ -222,8 +222,8 @@ extern bool startOnSurface;
 	extern bool useParachuteInAutopilot;
 
 	double Kh = 0.027; //0.027
-	double Kp = 0.01; //1.0
-	double kd = 0.01;
+	double Kp = 0.0910; //1.0
+	double kd = 0.178;
 	double delta = 1.0; //1.0
 	double H0 = MAX_THRUST;
 

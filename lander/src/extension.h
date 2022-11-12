@@ -23,6 +23,9 @@ double findAutopilotThrottle();
 double desiredVelocity(double altitude);
 
 double findAutopilotThrottleExamplePapers();
+Eigen::Vector3d updateThrustVectorExamplePapers(double& mass);
+Eigen::Vector3d updateAccelerationVectorExamplePapers();
+void VerletExamplePapers();
 
 
 

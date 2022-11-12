@@ -252,14 +252,57 @@ double findAutopilotThrottleExamplePapers()
 {
     double altitude = position.norm() - MARS_RADIUS;
     double targetAltitude = 500.0;
-    double speed = velocity.norm();
+    double speed = -1 * velocity.dot(position.normalized()); //Velocity in direction of position vector
     float Fequilibrium = GRAVITY * MARS_MASS * mass / pow((MARS_RADIUS + targetAltitude), 2);
+    float error = targetAltitude-altitude;
 
-    float error = altitude - targetAltitude;
-    return Fequilibrium / MAX_THRUST;
+    std::cout << "Speed: " << speed << endl;
+    std::cout << "Velocity: " << velocity.norm() << endl;
+    std::cout << "throttle: " << Fequilibrium / MAX_THRUST + Kp * error + kd * speed << endl <<endl;
+
+
+    return Fequilibrium / MAX_THRUST + Kp*error + kd * speed;
 
 }
 
+Eigen::Vector3d updateThrustVectorExamplePapers(double& mass) {
+    return (thrust_wrt_world() + 100.0*cos(0.1*simulation_time)*thrust_wrt_world().normalized())/mass;
+    // + 100.0*cos(0.1*simulation_time)*thrust_wrt_world().normalized()
+}
+
+/// <summary>
+/// Updates the overall acceleration vector
+/// </summary>
+/// <param name="mass">mass of craft</param>
+/// <returnsEigen::Vector3d >Acceleration Vector</returns>
+Eigen::Vector3d updateAccelerationVectorExamplePapers() {
+    updateMass(mass);
+    Eigen::Vector3d gravitation = updateGravitationVector();
+    Eigen::Vector3d thrust = updateThrustVectorExamplePapers(mass);
+    Eigen::Vector3d drag = updateDragVector(mass);
+
+    //cout << "G force: " << (thrust + drag).norm() / 9.81 << endl;
+
+    return gravitation + thrust + drag;
+}
+
+void VerletExamplePapers() {
+    static double mass = UNLOADED_LANDER_MASS + FUEL_CAPACITY * FUEL_DENSITY;
+    static std::vector<Eigen::Vector3d> previousStates(2);
+    Eigen::Vector3d acceleration = updateAccelerationVectorExamplePapers();
+    if (simulation_time == 0) {
+        previousStates[0] = position;
+        position = position + velocity * delta_t;
+        velocity = velocity + acceleration * delta_t;
+        previousStates[1] = position;
+    }
+    else {
+        position = 2 * position - previousStates[0] + acceleration * delta_t * delta_t;
+        velocity = (position - previousStates[1]) / delta_t;
+        previousStates[0] = previousStates[1];
+        previousStates[1] = position;
+    }
+}
 
 /// <summary>
 /// Logs Telemetry Data from the spacecraft
